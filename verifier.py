@@ -34,13 +34,13 @@ class Verifier(object):
     def find_vague_points(self,thresh=0.1,b=0.5):
         """ Find val set indices where marginals are within thresh of b """
         val_idx = np.where(np.abs(self.val_marginals-b) <= thresh)
-        return val_idx
+        return val_idx[0]
 
     def find_incorrect_points(self,b=0.5):
         """ Find val set indices where marginals are incorrect """
         val_labels = 2*(self.val_marginals > b)-1
         val_idx = np.where(val_labels != self.val_ground)
-        return val_idx
+        return val_idx[0]
 
 
 
