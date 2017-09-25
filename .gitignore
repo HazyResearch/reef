@@ -1,3 +1,4 @@
 *.pyc
 *.npy
 ipynb_checkpoints/
+.vscode/
