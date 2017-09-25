@@ -46,11 +46,11 @@ class Synthesizer(object):
         feature_combinations = self.generate_feature_combinations(cardinality)
         m = len(feature_combinations)
 
-        L_synth = []
+        heuristics = []
         for i,comb in enumerate(feature_combinations):
-            L_synth.append(self.fit_function(comb))
+            heuristics.append(self.fit_function(comb))
 
-        return L_synth, feature_combinations
+        return heuristics, feature_combinations
 
     def apply_heuristics(self, heuristics, X):
         """ Generates heuristics over given feature cardinality
@@ -64,6 +64,14 @@ class Synthesizer(object):
         for i,hf in enumerate(heuristics):
             L[:,i] = hf.predict(X[:,i])
         return L
+
+    def prune_heuristics(self,heuristics,feat_combos,keep=30):
+        L = self.apply_heuristics(heuristics,self.val_primitive_matrix[:,feat_combos])
+        accuracies = np.mean(L.T == self.val_ground, axis=1)
+        sort_idx = np.argsort(accuracies)[::-1][0:keep]
+        return sort_idx
+
+
 
 #TODO: function for getting accuracies and TP FP rates
 
