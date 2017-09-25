@@ -1,0 +1,73 @@
+import numpy as np
+import itertools
+
+from sklearn.linear_model import LogisticRegression
+
+class Synthesizer(object):
+    """
+    A class to synthesize heuristics from primitives and validation labels
+    """
+    def __init__(self, primitive_matrix, val_ground):
+        self.val_primitive_matrix = primitive_matrix
+        self.val_ground = val_ground
+        self.p = np.shape(self.val_primitive_matrix)[1]
+
+    def generate_feature_combinations(self, cardinality=1):
+        """ Create a list of primitive index combinations for given cardinality
+
+        cardinality: number of features each heuristic operates over
+        """
+        primitive_idx = range(self.p)
+        feature_combinations = []
+
+        for comb in itertools.combinations(primitive_idx, cardinality):
+            feature_combinations.append(comb)
+
+        return feature_combinations
+
+    def fit_function(self, comb):
+        """ Fits a single logistic regression model
+
+        comb: feature combination to fit model over
+        """
+        X = self.val_primitive_matrix[:,comb]
+        if np.shape(X)[0] == 1:
+            X = X.reshape(-1,1)
+
+        lr = LogisticRegression()
+        lr.fit(X,self.val_ground)
+        return lr
+
+    def generate_heuristics(self, cardinality=1):
+        """ Generates heuristics over given feature cardinality
+
+        cardinality: number of features each heuristic operates over
+        """
+        feature_combinations = self.generate_feature_combinations(cardinality)
+        m = len(feature_combinations)
+
+        L_synth = []
+        for i,comb in enumerate(feature_combinations):
+            L_synth.append(self.fit_function(comb))
+
+        return L_synth, feature_combinations
+
+    def apply_heuristics(self, heuristics, X):
+        """ Generates heuristics over given feature cardinality
+
+        heuristics: list of pre-trained logistic regression models
+        X: primitive matrix to apply heuristics to
+        """
+        #TODO: check that X and heuristic shapes match!
+
+        L = np.zeros((np.shape(X)[0],len(heuristics)))
+        for i,hf in enumerate(heuristics):
+            L[:,i] = hf.predict(X[:,i])
+        return L
+
+#TODO: function for getting accuracies and TP FP rates
+
+
+
+
+
