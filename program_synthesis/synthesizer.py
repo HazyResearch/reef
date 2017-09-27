@@ -53,14 +53,14 @@ class Synthesizer(object):
 
         return heuristics, feature_combinations
 
-    def apply_heuristics(self, heuristics, X, cutoff=0.3):
+    def apply_heuristics(self, heuristics, X, cutoff=0.2):
         """ Generates heuristics over given feature cardinality
 
         heuristics: list of pre-trained logistic regression models
         X: primitive matrix to apply heuristics to
         """
         #TODO: check that X and heuristic shapes match!
-        #TODO: have a blog for coverage!
+        #TODO: have a flag for coverage!
 
         L = np.zeros((np.shape(X)[0],len(heuristics)))
         for i,hf in enumerate(heuristics):
