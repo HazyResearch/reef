@@ -22,6 +22,7 @@ class Verifier(object):
         """
         if not grid_search:
             #TODO: Include dependencies option
+            #TODO: GridSearch
             gen_model = GenerativeModel()
             gen_model.train(self.L_train, epochs=100, decay=0.001 ** (1.0 / 100), step_size=0.005, reg_param=1.0)
         self.gen_model = gen_model
