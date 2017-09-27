@@ -7,10 +7,11 @@ class Synthesizer(object):
     """
     A class to synthesize heuristics from primitives and validation labels
     """
-    def __init__(self, primitive_matrix, val_ground):
+    def __init__(self, primitive_matrix, val_ground,b=0.5):
         self.val_primitive_matrix = primitive_matrix
         self.val_ground = val_ground
         self.p = np.shape(self.val_primitive_matrix)[1]
+        self.b=b
 
     def generate_feature_combinations(self, cardinality=1):
         """ Create a list of primitive index combinations for given cardinality
@@ -52,17 +53,22 @@ class Synthesizer(object):
 
         return heuristics, feature_combinations
 
-    def apply_heuristics(self, heuristics, X):
+    def apply_heuristics(self, heuristics, X, cutoff=0.3):
         """ Generates heuristics over given feature cardinality
 
         heuristics: list of pre-trained logistic regression models
         X: primitive matrix to apply heuristics to
         """
         #TODO: check that X and heuristic shapes match!
+        #TODO: have a blog for coverage!
 
         L = np.zeros((np.shape(X)[0],len(heuristics)))
         for i,hf in enumerate(heuristics):
-            L[:,i] = hf.predict(X[:,i])
+            marginals = hf.predict_proba(X[:,i])[:,1]
+            labels_cutoff = np.zeros(np.shape(marginals))
+            labels_cutoff[marginals <= (self.b-cutoff)] = -1.
+            labels_cutoff[marginals >= (self.b+cutoff)] = 1.
+            L[:,i] = labels_cutoff
         return L
 
     def prune_heuristics(self,heuristics,feat_combos,keep=30):
