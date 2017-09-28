@@ -9,7 +9,7 @@ class HeuristicGenerator(object):
     """
 
     def __init__(self, train_primitive_matrix, val_primitive_matrix, 
-    val_ground, train_ground=None, b=0.5):
+    val_ground, train_ground=None, b=0.5, hf_cutoff=0.2, fb_thresh=):
     #TODO: add option for existing heuristics and/or L_train/L_val
         self.train_primitive_matrix = train_primitive_matrix
         self.val_primitive_matrix = val_primitive_matrix
@@ -69,9 +69,9 @@ class HeuristicGenerator(object):
         self.vf.train_gen_model()
         self.vf.assign_marginals()
 
-    def find_feedback(self, thresh):
+    def find_feedback(self):
         print 'In fb ', np.shape(self.vf.L_train)
-        vague_idx = self.vf.find_vague_points(b=self.b, thresh=thresh)
+        vague_idx = self.vf.find_vague_points(b=self.b, thresh=self.thresh)
         #TODO: flag for re-classifying incorrect points
         #incorrect_idx = self.vf.find_incorrect_points(b=self.b)
         incorrect_idx = vague_idx
