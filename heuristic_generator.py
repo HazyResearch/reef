@@ -44,7 +44,7 @@ class HeuristicGenerator(object):
             primitive_matrix = self.val_primitive_matrix[idx,:]
             ground = self.val_ground[idx]
 
-        self.syn = Synthesizer(primitive_matrix, ground,b=self.b)
+        self.syn = Synthesizer(primitive_matrix, ground, beta=self.beta, b=self.b)
         hf, feat_combos = self.syn.generate_heuristics(cardinality)
         sort_idx = self.syn.prune_heuristics(hf,feat_combos, keep)
 
@@ -97,7 +97,7 @@ class HeuristicGenerator(object):
 
         self.gamma: confidence past 0.5 that relates to a vague or incorrect point
         """
-        vague_idx = self.vf.find_vague_points(b=self.b, thresh=self.gamma)
+        vague_idx = self.vf.find_vague_points(b=self.b, gamma=self.gamma)
         #TODO: flag for re-classifying incorrect points
         #incorrect_idx = self.vf.find_incorrect_points(b=self.b)
         incorrect_idx = vague_idx
