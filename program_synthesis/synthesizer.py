@@ -63,6 +63,25 @@ class Synthesizer(object):
 
         return heuristics, feature_combinations
 
+    def beta_optimizer(self,marginals,abstain_weight=0.75):
+        beta_params = np.linspace(0.0,0.45,10)
+        accuracies_weighted = []
+
+        for beta in beta_params:
+            labels_cutoff = np.zeros(np.shape(marginals))
+            labels_cutoff[marginals <= (self.b-beta)] = -1.
+            labels_cutoff[marginals >= (self.b+beta)] = 1.
+
+            coverage = np.mean(np.abs(labels_cutoff) != 0)
+            accuracy = np.mean(labels_cutoff == self.val_ground)/coverage
+
+            #import pdb; pdb.set_trace()
+            accuracies_weighted.append(coverage*accuracy + (1-coverage)*abstain_weight)
+        
+        #import pdb; pdb.set_trace()
+        return beta_params[np.argmax(np.array(accuracies_weighted))]
+
+
     def apply_heuristics(self, heuristics, X):
         """ 
         Generates heuristics over given feature cardinality
@@ -75,8 +94,11 @@ class Synthesizer(object):
         for i,hf in enumerate(heuristics):
             marginals = hf.predict_proba(X[:,i])[:,1]
             labels_cutoff = np.zeros(np.shape(marginals))
-            labels_cutoff[marginals <= (self.b-self.beta)] = -1.
-            labels_cutoff[marginals >= (self.b+self.beta)] = 1.
+            #Goal is to maximize (C*A) + (1-C)*abstain_weight
+            #TODO: Fix the beta optimizer - might only want accuracy or coverage?
+            beta_temp = self.beta_optimizer(marginals, abstain_weight=0.0)
+            labels_cutoff[marginals <= (self.b-beta_temp)] = -1.
+            labels_cutoff[marginals >= (self.b+beta_temp)] = 1.
             L[:,i] = labels_cutoff
         return L
 
