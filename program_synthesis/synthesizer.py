@@ -11,7 +11,7 @@ class Synthesizer(object):
         """ 
         Initialize Synthesizer object
 
-        b: class prior of most likely class (TODO: use somewhere)
+        b: class prior of most likely class
         beta: threshold to decide whether to abstain or label for heuristics
         """
         self.val_primitive_matrix = primitive_matrix
@@ -63,7 +63,13 @@ class Synthesizer(object):
 
         return heuristics, feature_combinations
 
-    def beta_optimizer(self,marginals,abstain_weight=0.75):
+    def beta_optimizer_bm(self,marginals,abstain_weight=0.75):
+        """ 
+        Returns the best beta parameter for abstain threshold given marginals
+
+        marginals: confidences for data from a single heuristic
+        abstain_weight: weight to give abstains for Bryan's Metric
+        """
         beta_params = np.linspace(0.0,0.45,10)
         accuracies_weighted = []
 
@@ -74,12 +80,24 @@ class Synthesizer(object):
 
             coverage = np.mean(np.abs(labels_cutoff) != 0)
             accuracy = np.mean(labels_cutoff == self.val_ground)/coverage
-
-            #import pdb; pdb.set_trace()
             accuracies_weighted.append(coverage*accuracy + (1-coverage)*abstain_weight)
         
         #import pdb; pdb.set_trace()
+        accuracies_weighted = np.nan_to_num(accuracies_weighted)
         return beta_params[np.argmax(np.array(accuracies_weighted))]
+
+    def beta_optimizer(self,marginals):
+        """ 
+        Returns the best beta parameter for abstain threshold given marginals
+
+        marginals: confidences for data from a single heuristic
+        """
+        beta_params = np.linspace(0.0,0.45,10)
+
+        confidence = np.abs(marginals-self.b)
+        confidence_mean = np.mean(confidence)
+        confidence_max = np.max(confidence)
+        return beta_params[np.argmin(np.abs(confidence_mean-beta_params))]
 
 
     def apply_heuristics(self, heuristics, X):
@@ -94,11 +112,10 @@ class Synthesizer(object):
         for i,hf in enumerate(heuristics):
             marginals = hf.predict_proba(X[:,i])[:,1]
             labels_cutoff = np.zeros(np.shape(marginals))
-            #Goal is to maximize (C*A) + (1-C)*abstain_weight
-            #TODO: Fix the beta optimizer - might only want accuracy or coverage?
-            beta_temp = self.beta_optimizer(marginals, abstain_weight=0.0)
-            labels_cutoff[marginals <= (self.b-beta_temp)] = -1.
-            labels_cutoff[marginals >= (self.b+beta_temp)] = 1.
+            beta_opt = self.beta_optimizer(marginals)
+
+            labels_cutoff[marginals <= (self.b-beta_opt)] = -1.
+            labels_cutoff[marginals >= (self.b+beta_opt)] = 1.
             L[:,i] = labels_cutoff
         return L
 
@@ -114,7 +131,6 @@ class Synthesizer(object):
         
         bm = [(a*b) + (0.5*(1-b)) for a,b in zip(accuracies,coverages)] 
         bm = np.nan_to_num(bm)
-
         
         sort_idx = np.argsort(bm)[::-1][0:keep]
         return sort_idx
