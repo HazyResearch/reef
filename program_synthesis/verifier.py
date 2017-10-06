@@ -16,7 +16,8 @@ class Verifier(object):
         self.val_ground = val_ground
 
     def train_gen_model(self,deps=False,grid_search=False):
-        """ Trains generative model acc. to parameters
+        """ 
+        Trains generative model acc. to parameters
 
         deps,grid_search: flags for generative model
         """
@@ -28,12 +29,16 @@ class Verifier(object):
         self.gen_model = gen_model
 
     def assign_marginals(self):
-        """ Assigns probabilistic labels for train and val sets """ 
+        """ 
+        Assigns probabilistic labels for train and val sets 
+        """ 
         self.train_marginals = self.gen_model.marginals(sparse.csr_matrix(self.L_train))
         self.val_marginals = self.gen_model.marginals(sparse.csr_matrix(self.L_val))
 
     def find_vague_points(self,thresh=0.1,b=0.5):
-        """ Find val set indices where marginals are within thresh of b """
+        """ 
+        Find val set indices where marginals are within thresh of b 
+        """
         val_idx = np.where(np.abs(self.val_marginals-b) <= thresh)
         return val_idx[0]
 
