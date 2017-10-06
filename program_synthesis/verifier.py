@@ -22,7 +22,6 @@ class Verifier(object):
         deps,grid_search: flags for generative model
         """
         if not grid_search:
-            #TODO: Include dependencies option
             #TODO: GridSearch
             gen_model = GenerativeModel()
             gen_model.train(self.L_train, epochs=100, decay=0.001 ** (1.0 / 100), step_size=0.005, reg_param=1.0)
@@ -35,11 +34,11 @@ class Verifier(object):
         self.train_marginals = self.gen_model.marginals(sparse.csr_matrix(self.L_train))
         self.val_marginals = self.gen_model.marginals(sparse.csr_matrix(self.L_val))
 
-    def find_vague_points(self,thresh=0.1,b=0.5):
+    def find_vague_points(self,gamma=0.1,b=0.5):
         """ 
         Find val set indices where marginals are within thresh of b 
         """
-        val_idx = np.where(np.abs(self.val_marginals-b) <= thresh)
+        val_idx = np.where(np.abs(self.val_marginals-b) <= gamma)
         return val_idx[0]
 
     def find_incorrect_points(self,b=0.5):

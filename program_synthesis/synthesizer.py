@@ -7,12 +7,18 @@ class Synthesizer(object):
     """
     A class to synthesize heuristics from primitives and validation labels
     """
-    def __init__(self, primitive_matrix, val_ground,b=0.5, cutoff=0.2):
+    def __init__(self, primitive_matrix, val_ground,b=0.5, beta=0.2):
+        """ 
+        Initialize Synthesizer object
+
+        b: class prior of most likely class (TODO: use somewhere)
+        beta: threshold to decide whether to abstain or label for heuristics
+        """
         self.val_primitive_matrix = primitive_matrix
         self.val_ground = val_ground
         self.p = np.shape(self.val_primitive_matrix)[1]
         self.b=b
-        self.cutoff = cutoff
+        self.beta = beta
 
     def generate_feature_combinations(self, cardinality=1):
         """ 
@@ -64,13 +70,13 @@ class Synthesizer(object):
         heuristics: list of pre-trained logistic regression models
         X: primitive matrix to apply heuristics to
         """
-        #TODO: check that X and heuristic shapes match!
+
         L = np.zeros((np.shape(X)[0],len(heuristics)))
         for i,hf in enumerate(heuristics):
             marginals = hf.predict_proba(X[:,i])[:,1]
             labels_cutoff = np.zeros(np.shape(marginals))
-            labels_cutoff[marginals <= (self.b-self.cutoff)] = -1.
-            labels_cutoff[marginals >= (self.b+self.cutoff)] = 1.
+            labels_cutoff[marginals <= (self.b-self.beta)] = -1.
+            labels_cutoff[marginals >= (self.b+self.beta)] = 1.
             L[:,i] = labels_cutoff
         return L
 
@@ -86,6 +92,8 @@ class Synthesizer(object):
         
         bm = [(a*b) + (0.5*(1-b)) for a,b in zip(accuracies,coverages)] 
         bm = np.nan_to_num(bm)
+
+        
         sort_idx = np.argsort(bm)[::-1][0:keep]
         return sort_idx
 

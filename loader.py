@@ -5,6 +5,7 @@ class DataLoader(object):
     """
 
     def load_data(self, dataset, data_path='data/', ):
+         #TODO: load all and split into train and test and validation here....
         if dataset == 'bone_tumor':
             primitive_matrix = np.load(data_path+dataset+'/primitive_matrix.npy')
             ground = np.load(data_path+dataset+'/ground.npy')
