@@ -23,6 +23,8 @@ class HeuristicGenerator(object):
         self.val_ground = val_ground
         self.train_ground = train_ground
         self.b = b
+
+        #TODO: remove taking beta in as a parameter or add a proper flag...
         self.beta = beta
         self.gamma = gamma
 
@@ -91,15 +93,52 @@ class HeuristicGenerator(object):
         self.vf.train_gen_model()
         self.vf.assign_marginals()
 
+    def gamma_optimizer_old(self,marginals,abstain_weight=0.8):
+        """ 
+        Returns the best gamma parameter for abstain threshold given marginals
+
+        marginals: confidences for data from a single heuristic
+        abstain_weight: weight to give abstains for Bryan's Metric
+        """
+        gamma_params = np.linspace(0.0,0.45,10)
+        accuracies_weighted = []
+
+        for gamma in gamma_params:
+            labels_cutoff = np.zeros(np.shape(marginals))
+            labels_cutoff[marginals <= (self.b-gamma)] = -1.
+            labels_cutoff[marginals >= (self.b+gamma)] = 1.
+
+            coverage = np.mean(np.abs(labels_cutoff) != 0)
+            accuracy = np.mean(labels_cutoff == self.val_ground)/coverage
+            accuracies_weighted.append(coverage*accuracy + (1-coverage)*abstain_weight)
+        
+        #import pdb; pdb.set_trace()
+        accuracies_weighted = np.nan_to_num(accuracies_weighted)
+        return gamma_params[np.argmax(np.array(accuracies_weighted))]
+
+    def gamma_optimizer(self,marginals,abstain_weight=0.8):
+        """ 
+        Returns the best gamma parameter for abstain threshold given marginals
+
+        marginals: confidences for data from a single heuristic
+        abstain_weight: weight to give abstains for Bryan's Metric
+        """
+        m = len(self.hf)
+        gamma = 0.5-(1/(m**(3/2.)))
+        return gamma
+
     def find_feedback(self):
         """ 
         Finds vague points according to gamma parameter
 
         self.gamma: confidence past 0.5 that relates to a vague or incorrect point
         """
-        vague_idx = self.vf.find_vague_points(b=self.b, gamma=self.gamma)
         #TODO: flag for re-classifying incorrect points
         #incorrect_idx = self.vf.find_incorrect_points(b=self.b)
+
+        gamma_opt = self.gamma_optimizer(self.vf.val_marginals)
+        #gamma_opt = self.gamma
+        vague_idx = self.vf.find_vague_points(b=self.b, gamma=gamma_opt)
         incorrect_idx = vague_idx
         self.feedback_idx = list(set(list(np.concatenate((vague_idx,incorrect_idx)))))
 
