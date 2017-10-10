@@ -69,13 +69,13 @@ class HeuristicGenerator(object):
         def calculate_accuracy(marginals, b, ground):
             #TODO: HOW DO I USE b!
             total = np.shape(np.where(marginals != 0.5))[1]
-            labels = np.round(2*(marginals - 0.5))
+            labels = np.sign(2*(marginals - 0.5))
             return np.sum(labels == ground)/float(total)
     
         def calculate_coverage(marginals, b, ground):
             #TODO: HOW DO I USE b!
             total = np.shape(np.where(marginals != 0.5))[1]
-            labels = np.round(2*(marginals - 0.5))
+            labels = np.sign(2*(marginals - 0.5))
             return total/float(len(labels))
 
         
@@ -140,27 +140,4 @@ class HeuristicGenerator(object):
         #gamma_opt = self.gamma
         vague_idx = self.vf.find_vague_points(b=self.b, gamma=gamma_opt)
         incorrect_idx = vague_idx
-        self.feedback_idx = list(set(list(np.concatenate((vague_idx,incorrect_idx)))))
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-    
+        self.feedback_idx = list(set(list(np.concatenate((vague_idx,incorrect_idx)))))    
