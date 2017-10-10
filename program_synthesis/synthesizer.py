@@ -69,7 +69,10 @@ class Synthesizer(object):
 
         marginals: confidences for data from a single heuristic
         """
-        beta_params = np.linspace(0.0,0.45,10)
+
+        #Set the range of beta params
+        #0.25 instead of 0.0 as a min makes controls coverage better
+        beta_params = np.linspace(0.25,0.45,5)
 
         confidence = np.abs(marginals-self.b)
         confidence_mean = np.mean(confidence)
