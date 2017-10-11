@@ -9,7 +9,13 @@ class DataLoader(object):
         if dataset == 'bone_tumor':
             primitive_matrix = np.load(data_path+dataset+'/primitive_matrix.npy')
             ground = np.load(data_path+dataset+'/ground.npy')
-            return primitive_matrix, ground
+
+            train_primitive_matrix = primitive_matrix[0:400,:]
+            train_ground = ground[0:400]
+            val_primitive_matrix = primitive_matrix[400:600,:]
+            val_ground = ground[400:600]
+            return train_primitive_matrix, val_primitive_matrix, test_primitive_matrix, train_ground, val_ground, test_ground
+       
         elif dataset == 'mammogram':
             train_primitive_matrix = np.load(data_path+dataset+'/primitive_matrix_train.npy')
             val_primitive_matrix = np.load(data_path+dataset+'/primitive_matrix_val.npy')
@@ -20,6 +26,28 @@ class DataLoader(object):
             test_ground = np.load(data_path+dataset+'/ground_test.npy')
 
             return train_primitive_matrix, val_primitive_matrix, test_primitive_matrix, train_ground, val_ground, test_ground
+        
+        elif dataset == 'visual_genome':
+            train_primitive_matrix = np.load(data_path+dataset+'/primitive_matrix_train.npy')
+            val_primitive_matrix = np.load(data_path+dataset+'/primitive_matrix_val.npy')
+
+            train_ground = np.load(data_path+dataset+'/ground_train.npy')
+            val_ground = np.load(data_path+dataset+'/ground_val.npy')
+
+            return train_primitive_matrix, val_primitive_matrix, [], train_ground, val_ground, []
+
+        if dataset == 'activity_net':
+            from sklearn.model_selection import KFold
+            kf = KFold(n_splits=4)
+
+            primitive_matrix = np.load(data_path+dataset+'/primitive_matrix.npy')
+            ground = np.load(data_path+dataset+'/ground.npy')
+            for train_index, test_index in kf.split(primitive_matrix):
+                  val_primitive_matrix, train_primitive_matrix = primitive_matrix[train_index], primitive_matrix[test_index]
+                  val_ground, train_ground = ground[train_index], ground[test_index]
+
+            return train_primitive_matrix, val_primitive_matrix, [], train_ground, val_ground, []
+       
 
 
 
