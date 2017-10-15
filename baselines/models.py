@@ -2,15 +2,16 @@ import numpy as np
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.ensemble import AdaBoostClassifier
 from sklearn.semi_supervised import LabelSpreading
+from sklearn.linear_model import SGDClassifier
 
 #need to clone https://github.com/tmadl/semisup-learn
 #TODO: work in progress, waiting on Cmake
 # import os
-# import sys
-# sys.path.append('/dfs/scratch0/paroma/semisup-learn/')
-# sys.path.append('/dfs/scratch0/paroma/nlopt-2.4.2/')
+import sys
+sys.path.append('/dfs/scratch0/paroma/semisup-learn/')
+sys.path.append('/dfs/scratch0/paroma/nlopt/install/lib/python2.7/site-packages/')
 # sys.path.append('/dfs/scratch0/paroma/include/')
-# from frameworks.CPLELearning import CPLELearningModel
+from frameworks.CPLELearning import CPLELearningModel
 
 
 class BaselineModel(object):
@@ -100,7 +101,10 @@ class ContrastiveSemiSupervised(BaselineModel):
     """
 
     def fit(self):
-        pass
+        #First fit a LR model on the labeled data
+        basemodel = SGDClassifier(loss='log', penalty='l1') # scikit logistic regression
+        basemodel.fit(self.val_primitive_matrix,(self.val_ground+1)/2.)
+
         #Need to concatenate labeled and unlabeled data
         #unlabeled data labels are set to -1
         X = np.concatenate((self.val_primitive_matrix, self.train_primitive_matrix))
@@ -108,7 +112,7 @@ class ContrastiveSemiSupervised(BaselineModel):
         train_labels = -1.*np.ones(np.shape(self.train_ground))
         y = np.concatenate((val_labels, train_labels))
 
-        self.model = CPLELearningModel()
+        self.model = CPLELearningModel(basemodel)
         self.model.fit(X, y)
 
 
