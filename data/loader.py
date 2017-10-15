@@ -14,7 +14,7 @@ class DataLoader(object):
             train_ground = ground[0:400]
             val_primitive_matrix = primitive_matrix[400:600,:]
             val_ground = ground[400:600]
-            return train_primitive_matrix, val_primitive_matrix, test_primitive_matrix, train_ground, val_ground, test_ground
+            return train_primitive_matrix, val_primitive_matrix, [], train_ground, val_ground, []
        
         elif dataset == 'mammogram':
             train_primitive_matrix = np.load(data_path+dataset+'/primitive_matrix_train.npy')
