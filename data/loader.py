@@ -36,7 +36,7 @@ class DataLoader(object):
 
             return train_primitive_matrix, val_primitive_matrix, [], train_ground, val_ground, []
 
-        if dataset == 'activity_net':
+        elif dataset == 'activity_net':
             from sklearn.model_selection import KFold
             kf = KFold(n_splits=4)
 
@@ -47,6 +47,28 @@ class DataLoader(object):
                   val_ground, train_ground = ground[train_index], ground[test_index]
 
             return train_primitive_matrix, val_primitive_matrix, [], train_ground, val_ground, []
+
+        elif dataset == 'twitter':
+            train_primitive_matrix = np.load(data_path+dataset+'/primitive_matrix_train.npy')
+            train_primitive_matrix = np.array(train_primitive_matrix.item().todense())
+
+            val_primitive_matrix = np.load(data_path+dataset+'/primitive_matrix_val.npy')
+            val_primitive_matrix = np.array(val_primitive_matrix.item().todense())
+
+            val_ground = np.load(data_path+dataset+'/ground_val.npy')
+
+            return train_primitive_matrix, val_primitive_matrix, [], [], val_ground, []
+
+        elif dataset == 'imdb':
+            train_primitive_matrix = np.load(data_path+dataset+'/primitive_matrix_train.npy')
+            train_primitive_matrix = np.array(train_primitive_matrix.item().todense())
+
+            val_primitive_matrix = np.load(data_path+dataset+'/primitive_matrix_val.npy')
+            val_primitive_matrix = np.array(val_primitive_matrix.item().todense())
+
+            val_ground = np.load(data_path+dataset+'/ground_val.npy')
+
+            return train_primitive_matrix, val_primitive_matrix, [], [], val_ground, []
        
 
 
