@@ -1,13 +1,14 @@
 import numpy as np
 import itertools
 
+from sklearn.metrics import f1_score
 from sklearn.linear_model import LogisticRegression
 
 class Synthesizer(object):
     """
     A class to synthesize heuristics from primitives and validation labels
     """
-    def __init__(self, primitive_matrix, val_ground,b=0.5, beta=0.2):
+    def __init__(self, primitive_matrix, val_ground,b=0.5):
         """ 
         Initialize Synthesizer object
 
@@ -18,7 +19,6 @@ class Synthesizer(object):
         self.val_ground = val_ground
         self.p = np.shape(self.val_primitive_matrix)[1]
         self.b=b
-        self.beta = beta
 
     def generate_feature_combinations(self, cardinality=1):
         """ 
@@ -63,9 +63,10 @@ class Synthesizer(object):
 
         return heuristics, feature_combinations
 
-    def beta_optimizer(self,marginals):
+    def beta_optimizer_old(self,marginals):
         """ 
         Returns the best beta parameter for abstain threshold given marginals
+        Uses some random Paroma metric to decide beta, but it works well
 
         marginals: confidences for data from a single heuristic
         """
@@ -79,25 +80,50 @@ class Synthesizer(object):
         confidence_max = np.max(confidence)
         return beta_params[np.argmin(np.abs(confidence_mean-beta_params))]
 
-
-    def apply_heuristics(self, heuristics, X):
+    def beta_optimizer(self,marginals, ground):
         """ 
-        Generates heuristics over given feature cardinality
+        Returns the best beta parameter for abstain threshold given marginals
+        Uses F1 score that maximizes the F1 score
+
+        marginals: confidences for data from a single heuristic
+        """
+
+        #Set the range of beta params
+        #0.25 instead of 0.0 as a min makes controls coverage better
+        beta_params = np.linspace(0.25,0.45,10)
+
+        f1 = []		
+ 		
+        for beta in beta_params:		
+            labels_cutoff = np.zeros(np.shape(marginals))		
+            labels_cutoff[marginals <= (self.b-beta)] = -1.		
+            labels_cutoff[marginals >= (self.b+beta)] = 1.		
+ 		
+            #coverage = np.mean(np.abs(labels_cutoff) != 0)		
+            #accuracy = np.mean(labels_cutoff == self.val_ground)/coverage	
+            #import pdb; pdb.set_trace()
+            #assert(len(self.val_ground) == len(labels_cutoff))
+            f1.append(f1_score(ground, labels_cutoff, average='micro'))
+         		
+        f1 = np.nan_to_num(f1)		
+        return beta_params[np.argmax(np.array(f1))]
+
+
+    def find_optimal_beta(self, heuristics, X, ground):
+        """ 
+        Returns optimal beta for given heuristics
 
         heuristics: list of pre-trained logistic regression models
         X: primitive matrix to apply heuristics to
+        ground: ground truth associated with X data
         """
 
-        L = np.zeros((np.shape(X)[0],len(heuristics)))
+        beta_opt = []
         for i,hf in enumerate(heuristics):
             marginals = hf.predict_proba(X[:,i])[:,1]
             labels_cutoff = np.zeros(np.shape(marginals))
-            beta_opt = self.beta_optimizer(marginals)
-
-            labels_cutoff[marginals <= (self.b-beta_opt)] = -1.
-            labels_cutoff[marginals >= (self.b+beta_opt)] = 1.
-            L[:,i] = labels_cutoff
-        return L
+            beta_opt.append((self.beta_optimizer(marginals, ground)))
+        return beta_opt
 
 #TODO: function for getting accuracies and TP FP rates
 
