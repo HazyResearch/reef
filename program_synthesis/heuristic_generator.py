@@ -1,4 +1,5 @@
 import numpy as np
+from sklearn.metrics import f1_score
 
 from program_synthesis.synthesizer import Synthesizer
 from program_synthesis.verifier import Verifier
@@ -27,9 +28,44 @@ class HeuristicGenerator(object):
         #TODO: remove taking beta in as a parameter or add a proper flag...
         self.beta = beta
         self.gamma = gamma
+        self.vf = None
+        self.syn = None
 
         self.hf = []
         self.feat_combos = []
+
+    def prune_heuristics(self,heuristics,feat_combos,keep=1):
+        """ 
+        Selects the best heuristic based on Jaccard Distance and Reliability Metric
+
+        keep: number of heuristics to keep from all generated heuristics
+        """
+
+        def calculate_jaccard_distance(num_labeled_total, num_labeled_L):
+            scores = np.zeros(np.shape(num_labeled_L)[1])
+            for i in range(np.shape(num_labeled_L)[1]):
+                scores[i] = np.sum(np.minimum(num_labeled_L[:,i],num_labeled_total))/np.sum(np.maximum(num_labeled_L[:,i],num_labeled_total))
+            return 1-scores
+
+        #Note that the LFs are being applied to the entire val set though they were developed on a subset...
+        L = self.syn.apply_heuristics(heuristics,self.val_primitive_matrix[:,feat_combos])
+
+        #Use F1 trade-off for reliability
+        acc_cov_scores = [f1_score(L[:,i], self.val_ground, average='micro') for i in range(np.shape(L)[1])] 
+        acc_cov_scores = np.nan_to_num(acc_cov_scores)
+        
+        if self.vf != None:
+            #Calculate Jaccard score for diversity
+            val_num_labeled = np.sum(np.abs(self.vf.L_val.T), axis=0) 
+            jaccard_scores = calculate_jaccard_distance(val_num_labeled,np.abs(L))
+        else:
+            jaccard_scores = np.ones(np.shape(acc_cov_scores))
+
+        #Weighting the two scores to find best heuristic
+        combined_scores = 0.5*acc_cov_scores + 0.5*jaccard_scores
+        sort_idx = np.argsort(combined_scores)[::-1][0:keep]
+        return sort_idx
+     
 
     def run_synthesizer(self, cardinality=1, idx=None, keep=1):
         """ 
@@ -48,7 +84,7 @@ class HeuristicGenerator(object):
 
         self.syn = Synthesizer(primitive_matrix, ground, beta=self.beta, b=self.b)
         hf, feat_combos = self.syn.generate_heuristics(cardinality)
-        sort_idx = self.syn.prune_heuristics(hf,feat_combos, keep)
+        sort_idx = self.prune_heuristics(hf,feat_combos, keep)
 
         for i in sort_idx:
             self.hf.append(hf[i]) 

@@ -99,22 +99,6 @@ class Synthesizer(object):
             L[:,i] = labels_cutoff
         return L
 
-    def prune_heuristics(self,heuristics,feat_combos,keep=1):
-        """ 
-        Selects the best heuristic based on "bryan's metric"
-
-        keep: number of heuristics to keep from all generated heuristics
-        """
-        L = self.apply_heuristics(heuristics,self.val_primitive_matrix[:,feat_combos])
-        coverages = np.mean(np.abs(L.T) != 0, axis = 1)
-        accuracies = np.mean(L.T == self.val_ground, axis=1)/coverages
-        
-        bm = [(a*b) + (0.5*(1-b)) for a,b in zip(accuracies,coverages)] 
-        bm = np.nan_to_num(bm)
-        
-        sort_idx = np.argsort(bm)[::-1][0:keep]
-        return sort_idx
-
 #TODO: function for getting accuracies and TP FP rates
 
 
