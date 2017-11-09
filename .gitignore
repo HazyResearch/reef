@@ -4,3 +4,5 @@
 *.db 
 .ipynb_checkpoints/
 .vscode/
+data/mobile_mb/._mobile_data.csv
+data/mobile_mb/mobile_data.csv
