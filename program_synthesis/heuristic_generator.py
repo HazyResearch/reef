@@ -152,7 +152,7 @@ class HeuristicGenerator(object):
         self.feedback_idx = list(set(list(np.concatenate((vague_idx,incorrect_idx)))))   
 
 
-     def evaluate(self):
+    def evaluate(self):
         """ 
         Calculate the accuracy and coverage for train and validation sets
         """
