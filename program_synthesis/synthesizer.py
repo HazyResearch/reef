@@ -3,6 +3,7 @@ import itertools
 
 from sklearn.metrics import f1_score
 from sklearn.linear_model import LogisticRegression
+from sklearn.tree import DecisionTreeClassifier
 
 class Synthesizer(object):
     """
@@ -34,24 +35,33 @@ class Synthesizer(object):
 
         return feature_combinations
 
-    def fit_function(self, comb):
+    def fit_function(self, comb, model):
         """ 
-        Fits a single logistic regression model
+        Fits a single logistic regression or decision tree model
 
         comb: feature combination to fit model over
+        model: fit logistic regression or a decision tree
         """
         X = self.val_primitive_matrix[:,comb]
         if np.shape(X)[0] == 1:
             X = X.reshape(-1,1)
 
-        lr = LogisticRegression()
-        lr.fit(X,self.val_ground)
-        return lr
+        # fit decision tree or logistic regression
+        if model == 'dt':
+            dt = DecisionTreeClassifier(max_depth=len(comb))
+            dt.fit(X,self.val_ground)
+            return dt
 
-    def generate_heuristics(self, cardinality=1):
+        elif model == 'lr':
+            lr = LogisticRegression()
+            lr.fit(X,self.val_ground)
+            return lr
+
+    def generate_heuristics(self, model, cardinality=1):
         """ 
         Generates heuristics over given feature cardinality
 
+        model: fit logistic regression or a decision tree
         cardinality: number of features each heuristic operates over
         """
         feature_combinations = self.generate_feature_combinations(cardinality)
@@ -59,7 +69,7 @@ class Synthesizer(object):
 
         heuristics = []
         for i,comb in enumerate(feature_combinations):
-            heuristics.append(self.fit_function(comb))
+            heuristics.append(self.fit_function(comb, model))
 
         return heuristics, feature_combinations
 
