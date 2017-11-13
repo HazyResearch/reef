@@ -74,23 +74,6 @@ class Synthesizer(object):
 
         return heuristics, feature_combinations
 
-    def beta_optimizer_old(self,marginals):
-        """ 
-        Returns the best beta parameter for abstain threshold given marginals
-        Uses some random Paroma metric to decide beta, but it works well
-
-        marginals: confidences for data from a single heuristic
-        """
-
-        #Set the range of beta params
-        #0.25 instead of 0.0 as a min makes controls coverage better
-        beta_params = np.linspace(0.25,0.45,5)
-
-        confidence = np.abs(marginals-self.b)
-        confidence_mean = np.mean(confidence)
-        confidence_max = np.max(confidence)
-        return beta_params[np.argmin(np.abs(confidence_mean-beta_params))]
-
     def beta_optimizer(self,marginals, ground):
         """ 
         Returns the best beta parameter for abstain threshold given marginals
@@ -109,11 +92,6 @@ class Synthesizer(object):
             labels_cutoff = np.zeros(np.shape(marginals))		
             labels_cutoff[marginals <= (self.b-beta)] = -1.		
             labels_cutoff[marginals >= (self.b+beta)] = 1.		
- 		
-            #coverage = np.mean(np.abs(labels_cutoff) != 0)		
-            #accuracy = np.mean(labels_cutoff == self.val_ground)/coverage	
-            #import pdb; pdb.set_trace()
-            #assert(len(self.val_ground) == len(labels_cutoff))
             f1.append(f1_score(ground, labels_cutoff, average='micro'))
          		
         f1 = np.nan_to_num(f1)		
