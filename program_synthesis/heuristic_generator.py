@@ -82,11 +82,11 @@ class HeuristicGenerator(object):
         return sort_idx
      
 
-    def run_synthesizer(self, cardinality=1, idx=None, keep=1, model='lr'):
+    def run_synthesizer(self, max_cardinality=1, idx=None, keep=1, model='lr'):
         """ 
         Generates Synthesizer object and saves all generated heuristics
 
-        cardinality: number of features candidate programs take as input
+        max_cardinality: max number of features candidate programs take as input
         idx: indices of validation set to fit programs over
         keep: number of heuristics to pass to verifier
         model: train logistic regression ('lr') or decision tree ('dt')
@@ -103,7 +103,7 @@ class HeuristicGenerator(object):
         self.syn = Synthesizer(primitive_matrix, ground, b=self.b)
 
         #Select keep best heuristics from generated heuristics
-        hf, feat_combos = self.syn.generate_heuristics(model, cardinality)
+        hf, feat_combos = self.syn.generate_heuristics(model, max_cardinality)
         sort_idx = self.prune_heuristics(hf,feat_combos, keep)
         for i in sort_idx:
             self.hf.append(hf[i]) 

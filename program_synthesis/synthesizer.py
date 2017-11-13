@@ -21,17 +21,18 @@ class Synthesizer(object):
         self.p = np.shape(self.val_primitive_matrix)[1]
         self.b=b
 
-    def generate_feature_combinations(self, cardinality=1):
+    def generate_feature_combinations(self, max_cardinality=1):
         """ 
         Create a list of primitive index combinations for given cardinality
 
-        cardinality: number of features each heuristic operates over
+        max_cardinality: max number of features each heuristic operates over 
         """
         primitive_idx = range(self.p)
         feature_combinations = []
 
-        for comb in itertools.combinations(primitive_idx, cardinality):
-            feature_combinations.append(comb)
+        for cardinality in range(1, max_cardinality+1):
+            for comb in itertools.combinations(primitive_idx, cardinality):
+                feature_combinations.append(comb)
 
         return feature_combinations
 
@@ -57,14 +58,14 @@ class Synthesizer(object):
             lr.fit(X,self.val_ground)
             return lr
 
-    def generate_heuristics(self, model, cardinality=1):
+    def generate_heuristics(self, model, max_cardinality=1):
         """ 
         Generates heuristics over given feature cardinality
 
         model: fit logistic regression or a decision tree
-        cardinality: number of features each heuristic operates over
+        max_cardinality: max number of features each heuristic operates over
         """
-        feature_combinations = self.generate_feature_combinations(cardinality)
+        feature_combinations = self.generate_feature_combinations(max_cardinality)
         m = len(feature_combinations)
 
         heuristics = []
