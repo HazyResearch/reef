@@ -66,9 +66,32 @@ class DataLoader(object):
             val_primitive_matrix = np.load(data_path+dataset+'/primitive_matrix_val.npy')
             val_primitive_matrix = np.array(val_primitive_matrix.item().todense())
 
-            val_ground = np.load(data_path+dataset+'/ground_val.npy')
+            test_primitive_matrix = np.load(data_path+dataset+'/primitive_matrix_test.npy')
+            test_primitive_matrix = np.array(test_primitive_matrix.item().todense())
 
-            return train_primitive_matrix, val_primitive_matrix, [], [], val_ground, []
+            val_ground = np.load(data_path+dataset+'/ground_val.npy')
+            train_ground = np.load(data_path+dataset+'/ground_train.npy')
+            test_ground = np.load(data_path+dataset+'/ground_test.npy')
+
+            return train_primitive_matrix, val_primitive_matrix, test_primitive_matrix, train_ground, val_ground, test_ground
+        
+        elif dataset == 'mscoco':
+            train_primitive_matrix = np.load(data_path+dataset+'/primitive_matrix_train.npy')
+            train_primitive_matrix = np.array(train_primitive_matrix.item().todense())
+
+            val_primitive_matrix = np.load(data_path+dataset+'/primitive_matrix_val.npy')
+            val_primitive_matrix = np.array(val_primitive_matrix.item().todense())
+
+            test_primitive_matrix = np.load(data_path+dataset+'/primitive_matrix_test.npy')
+            test_primitive_matrix = np.array(test_primitive_matrix.item().todense())
+
+            val_ground = np.load(data_path+dataset+'/ground_val.npy')
+            train_ground = np.load(data_path+dataset+'/ground_train.npy')
+            test_ground = np.load(data_path+dataset+'/ground_test.npy')
+
+            return train_primitive_matrix, val_primitive_matrix, test_primitive_matrix, train_ground, val_ground, test_ground
+       
+
        
 
 
