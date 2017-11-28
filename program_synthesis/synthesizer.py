@@ -30,9 +30,9 @@ class Synthesizer(object):
         primitive_idx = range(self.p)
         feature_combinations = []
 
-        for cardinality in range(1, max_cardinality+1):
-            for comb in itertools.combinations(primitive_idx, cardinality):
-                feature_combinations.append(comb)
+        #for cardinality in range(1, max_cardinality+1):
+        for comb in itertools.combinations(primitive_idx, max_cardinality):
+            feature_combinations.append(comb)
 
         return feature_combinations
 
