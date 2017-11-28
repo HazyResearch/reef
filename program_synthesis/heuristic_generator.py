@@ -123,7 +123,7 @@ class HeuristicGenerator(object):
         """ 
         Generates Verifier object and saves marginals
         """
-        self.vf = Verifier(self.L_train, self.L_val, self.val_ground)
+        self.vf = Verifier(self.L_train, self.L_val, self.val_ground, has_snorkel=False)
         self.vf.train_gen_model()
         self.vf.assign_marginals()
 
@@ -168,6 +168,7 @@ class HeuristicGenerator(object):
     
         def calculate_coverage(marginals, b, ground):
             #TODO: HOW DO I USE b!
+            #import pdb; pdb.set_trace()
             total = np.shape(np.where(marginals != 0.5))[1]
             labels = np.sign(2*(marginals - 0.5))
             return total/float(len(labels))

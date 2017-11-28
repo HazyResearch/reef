@@ -1,30 +1,34 @@
 import numpy as np
 from scipy import sparse
-
-from snorkel.learning import GenerativeModel
-from snorkel.learning import RandomSearch
-from snorkel.learning.structure import DependencySelector
+from label_aggregator import LabelAggregator
 
 class Verifier(object):
     """
     A class for the Snorkel Model Verifier
     """
 
-    def __init__(self, L_train, L_val, val_ground):
+    def __init__(self, L_train, L_val, val_ground, has_snorkel=True):
         self.L_train = L_train.astype(int)
         self.L_val = L_val.astype(int)
         self.val_ground = val_ground
 
+        self.has_snorkel = has_snorkel
+        if self.has_snorkel:
+            from snorkel.learning import GenerativeModel
+            from snorkel.learning import RandomSearch
+            from snorkel.learning.structure import DependencySelector
+
     def train_gen_model(self,deps=False,grid_search=False):
         """ 
-        Trains generative model acc. to parameters
-
-        deps,grid_search: flags for generative model
+        Calls appropriate generative model
         """
-        if not grid_search:
+        if self.has_snorkel:
             #TODO: GridSearch
             gen_model = GenerativeModel()
             gen_model.train(self.L_train, epochs=100, decay=0.001 ** (1.0 / 100), step_size=0.005, reg_param=1.0)
+        else:
+            gen_model = LabelAggregator()
+            gen_model.train(self.L_train, rate=5e-3, mu=1e-4, verbose=False)
         self.gen_model = gen_model
 
     def assign_marginals(self):
@@ -46,15 +50,3 @@ class Verifier(object):
         val_labels = 2*(self.val_marginals > b)-1
         val_idx = np.where(val_labels != self.val_ground)
         return val_idx[0]
-
-
-
-
-       
-
-        
-
-    
-
-
-        
