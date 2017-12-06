@@ -106,6 +106,15 @@ class DataLoader(object):
             common_idx = self.prune_features(val_primitive_matrix, train_primitive_matrix)
 
             return train_primitive_matrix[:,common_idx], val_primitive_matrix[:,common_idx], test_primitive_matrix, train_ground, val_ground, test_ground
+
+        elif dataset == 'mobile_mb':
+            train_primitive_matrix = np.load(data_path+dataset+'/primitive_matrix_train.npy')
+            val_primitive_matrix = np.load(data_path+dataset+'/primitive_matrix_val.npy')
+
+            train_ground = np.load(data_path+dataset+'/ground_train.npy')
+            val_ground = np.load(data_path+dataset+'/ground_val.npy')
+
+            return train_primitive_matrix, val_primitive_matrix, [], train_ground, val_ground, []
        
 
        
