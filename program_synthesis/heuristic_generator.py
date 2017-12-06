@@ -123,7 +123,7 @@ class HeuristicGenerator(object):
         """ 
         Generates Verifier object and saves marginals
         """
-        self.vf = Verifier(self.L_train, self.L_val, self.val_ground, has_snorkel=False)
+        self.vf = Verifier(self.L_train, self.L_val, self.val_ground, has_snorkel=True)
         self.vf.train_gen_model()
         self.vf.assign_marginals()
 
