@@ -1,9 +1,22 @@
 import numpy as np
 import itertools
+import multiprocessing as mp
 
 from sklearn.metrics import f1_score
 from sklearn.linear_model import LogisticRegression
 from sklearn.tree import DecisionTreeClassifier
+
+import copy_reg
+import types
+
+def _pickle_method(m):
+    if m.im_self is None:
+        return getattr, (m.im_class, m.im_func.func_name)
+    else:
+        return getattr, (m.im_self, m.im_func.func_name)
+
+copy_reg.pickle(types.MethodType, _pickle_method)
+
 
 class Synthesizer(object):
     """
@@ -67,6 +80,10 @@ class Synthesizer(object):
         """
         feature_combinations = self.generate_feature_combinations(max_cardinality)
         m = len(feature_combinations)
+
+        # pool = mp.Pool(processes=5)
+        # heuristics = [pool.apply(self.fit_function, args=(comb,model)) for comb in feature_combinations]
+        # import pdb; pdb.set_trace()
 
         heuristics = []
         for i,comb in enumerate(feature_combinations):
