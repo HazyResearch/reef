@@ -123,7 +123,8 @@ class HeuristicGenerator(object):
         """ 
         Generates Verifier object and saves marginals
         """
-        self.vf = Verifier(self.L_train, self.L_val, self.val_ground, has_snorkel=True)
+        ###THIS IS WHERE THE SNORKEL FLAG IS SET!!!!
+        self.vf = Verifier(self.L_train, self.L_val, self.val_ground, has_snorkel=False)
         self.vf.train_gen_model()
         self.vf.assign_marginals()
 
@@ -134,7 +135,7 @@ class HeuristicGenerator(object):
         marginals: confidences for data from a single heuristic
         """
         m = len(self.hf)
-        gamma = 0.5-(1/(m**(3/2.)))
+        gamma = 0.5-(1/(m**(3/2.))) 
         return gamma
 
     def find_feedback(self):
