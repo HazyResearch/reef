@@ -1,4 +1,5 @@
 import numpy as np
+import pandas as pd
 from sklearn.metrics import f1_score
 
 from program_synthesis.synthesizer import Synthesizer
@@ -169,7 +170,6 @@ class HeuristicGenerator(object):
     
         def calculate_coverage(marginals, b, ground):
             #TODO: HOW DO I USE b!
-            #import pdb; pdb.set_trace()
             total = np.shape(np.where(marginals != 0.5))[1]
             labels = np.sign(2*(marginals - 0.5))
             return total/float(len(labels))
@@ -180,3 +180,44 @@ class HeuristicGenerator(object):
         self.val_coverage = calculate_coverage(self.val_marginals, self.b, self.val_ground)
         self.train_coverage = calculate_coverage(self.train_marginals, self.b, self.train_ground)
         return self.val_accuracy, self.train_accuracy, self.val_coverage, self.train_coverage 
+
+    def heuristic_stats(self):
+        '''For each heuristic, we want the following:
+        - idx of the features it relies on
+        - if dt, then the thresholds?
+        ''' 
+
+
+        def calculate_accuracy(marginals, b, ground):
+            #TODO: HOW DO I USE b!
+            total = np.shape(np.where(marginals != 0.5))[1]
+            labels = np.sign(2*(marginals - 0.5))
+            return np.sum(labels == ground)/float(total)
+    
+        def calculate_coverage(marginals, b, ground):
+            #TODO: HOW DO I USE b!
+            total = np.shape(np.where(marginals != 0))[1]
+            labels = marginals
+            return total/float(len(labels))
+
+        stats_table = np.zeros((len(self.hf),6))
+        for i in range(len(self.hf)):
+            stats_table[i,0] = int(self.feat_combos[i][0])
+            try:
+                stats_table[i,1] = int(self.feat_combos[i][1])
+            except:
+                continue
+            stats_table[i,2] = calculate_accuracy(self.L_val[:,i], self.b, self.val_ground)
+            stats_table[i,3] = calculate_accuracy(self.L_train[:,i], self.b, self.train_ground)
+            stats_table[i,4] = calculate_coverage(self.L_val[:,i], self.b, self.val_ground)
+            stats_table[i,5] = calculate_coverage(self.L_train[:,i], self.b, self.train_ground)
+        
+        #Make table
+        column_headers = ['Feat 1', 'Feat 2', 'Val Acc', 'Train Acc', 'Val Cov', 'Train Cov']
+        pandas_stats_table = pd.DataFrame(stats_table, columns=column_headers)
+        return pandas_stats_table
+
+
+            
+
+
