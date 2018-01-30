@@ -31,22 +31,25 @@ class HeuristicGenerator(object):
         self.hf = []
         self.feat_combos = []
 
-    def apply_heuristics(self, heuristics, X, beta_opt):
+    def apply_heuristics(self, heuristics, primitive_matrix, feat_combos, beta_opt):
         """ 
         Apply given heuristics to given feature matrix X and abstain by beta
 
         heuristics: list of pre-trained logistic regression models
-        X: primitive matrix to apply heuristics to
+        feat_combos: primitive indices to apply heuristics to
         beta: best beta value for associated heuristics
         """
 
-        L = np.zeros((np.shape(X)[0],len(heuristics)))
-        for i,hf in enumerate(heuristics):
-            marginals = hf.predict_proba(X[:,i])[:,1]
+        def marginals_to_labels(hf,X,beta):
+            marginals = hf.predict_proba(X)[:,1]
             labels_cutoff = np.zeros(np.shape(marginals))
-            labels_cutoff[marginals <= (self.b-beta_opt[i])] = -1.
-            labels_cutoff[marginals >= (self.b+beta_opt[i])] = 1.
-            L[:,i] = labels_cutoff
+            labels_cutoff[marginals <= (self.b-beta)] = -1.
+            labels_cutoff[marginals >= (self.b+beta)] = 1.
+            return labels_cutoff
+
+        L = np.zeros((np.shape(primitive_matrix)[0],len(heuristics)))
+        for i,hf in enumerate(heuristics):
+            L[:,i] = marginals_to_labels(hf,primitive_matrix[:,feat_combos[i]],beta_opt[i])
         return L
 
     def prune_heuristics(self,heuristics,feat_combos,keep=1):
@@ -61,11 +64,22 @@ class HeuristicGenerator(object):
             for i in range(np.shape(num_labeled_L)[1]):
                 scores[i] = np.sum(np.minimum(num_labeled_L[:,i],num_labeled_total))/np.sum(np.maximum(num_labeled_L[:,i],num_labeled_total))
             return 1-scores
-
-        #Note that the LFs are being applied to the entire val set though they were developed on a subset...
-        beta_opt = self.syn.find_optimal_beta(heuristics, self.val_primitive_matrix[:,feat_combos], self.val_ground)
-        L = self.apply_heuristics(heuristics, self.val_primitive_matrix[:,feat_combos], beta_opt)
-
+        
+        L = np.array([])
+        beta_opt = np.array([])
+        max_cardinality = len(heuristics)
+        for i in range(max_cardinality):
+            #Note that the LFs are being applied to the entire val set though they were developed on a subset...
+            beta_opt_temp = self.syn.find_optimal_beta(heuristics[i], self.val_primitive_matrix, feat_combos[i], self.val_ground)
+            L_temp = self.apply_heuristics(heuristics[i], self.val_primitive_matrix, feat_combos[i], beta_opt_temp) 
+            
+            beta_opt = np.append(beta_opt, beta_opt_temp)
+            if i == 0:
+                L = np.append(L, L_temp) #converts to 1D array automatically
+                L = np.reshape(L,np.shape(L_temp))
+            else:
+                L = np.concatenate((L, L_temp), axis=1)
+        
         #Use F1 trade-off for reliability
         acc_cov_scores = [f1_score(self.val_ground, L[:,i], average='micro') for i in range(np.shape(L)[1])] 
         acc_cov_scores = np.nan_to_num(acc_cov_scores)
@@ -103,22 +117,27 @@ class HeuristicGenerator(object):
         #Generate all possible heuristics
         self.syn = Synthesizer(primitive_matrix, ground, b=self.b)
 
+        #Un-flatten indices
+        def index(a, inp):
+            i = 0
+            remainder = 0
+            while inp > 0:
+                remainder = inp
+                inp -= len(a[i])
+                i+=1
+            return a[i-1][remainder]
+
         #Select keep best heuristics from generated heuristics
         hf, feat_combos = self.syn.generate_heuristics(model, max_cardinality)
         sort_idx = self.prune_heuristics(hf,feat_combos, keep)
         for i in sort_idx:
-            self.hf.append(hf[i]) 
-            self.feat_combos.append(feat_combos[i])
-
+            self.hf.append(index(hf,i)) 
+            self.feat_combos.append(index(feat_combos,i))
 
         #create appended L matrices for validation and train set
-        self.X_val = self.val_primitive_matrix[:,self.feat_combos]
-        beta_opt = self.syn.find_optimal_beta(self.hf, self.X_val, self.val_ground)
-        self.L_val = self.apply_heuristics(self.hf,self.X_val, beta_opt)
-
-        self.X_train = self.train_primitive_matrix[:,self.feat_combos]
-        self.L_train = self.apply_heuristics(self.hf,self.X_train, beta_opt)
-       
+        beta_opt = self.syn.find_optimal_beta(self.hf, self.val_primitive_matrix, self.feat_combos, self.val_ground)
+        self.L_val = self.apply_heuristics(self.hf, self.val_primitive_matrix, self.feat_combos, beta_opt)       
+        self.L_train = self.apply_heuristics(self.hf, self.train_primitive_matrix, self.feat_combos, beta_opt)  
     
     def run_verifier(self):
         """ 
@@ -206,7 +225,7 @@ class HeuristicGenerator(object):
             try:
                 stats_table[i,1] = int(self.feat_combos[i][1])
             except:
-                continue
+                stats_table[i,1] = -1.
             stats_table[i,2] = calculate_accuracy(self.L_val[:,i], self.b, self.val_ground)
             stats_table[i,3] = calculate_accuracy(self.L_train[:,i], self.b, self.train_ground)
             stats_table[i,4] = calculate_coverage(self.L_val[:,i], self.b, self.val_ground)

@@ -34,7 +34,7 @@ class Synthesizer(object):
         self.p = np.shape(self.val_primitive_matrix)[1]
         self.b=b
 
-    def generate_feature_combinations(self, max_cardinality=1):
+    def generate_feature_combinations(self, cardinality=1):
         """ 
         Create a list of primitive index combinations for given cardinality
 
@@ -43,8 +43,7 @@ class Synthesizer(object):
         primitive_idx = range(self.p)
         feature_combinations = []
 
-        #for cardinality in range(1, max_cardinality+1):
-        for comb in itertools.combinations(primitive_idx, max_cardinality):
+        for comb in itertools.combinations(primitive_idx, cardinality):
             feature_combinations.append(comb)
 
         return feature_combinations
@@ -78,18 +77,20 @@ class Synthesizer(object):
         model: fit logistic regression or a decision tree
         max_cardinality: max number of features each heuristic operates over
         """
-        feature_combinations = self.generate_feature_combinations(max_cardinality)
-        m = len(feature_combinations)
+        #have to make a dictionary?? or feature combinations here? or list of arrays?
+        feature_combinations_final = []
+        heuristics_final = []
+        for cardinality in range(1, max_cardinality+1):
+            feature_combinations = self.generate_feature_combinations(cardinality)
 
-        # pool = mp.Pool(processes=5)
-        # heuristics = [pool.apply(self.fit_function, args=(comb,model)) for comb in feature_combinations]
-        # import pdb; pdb.set_trace()
+            heuristics = []
+            for i,comb in enumerate(feature_combinations):
+                heuristics.append(self.fit_function(comb, model))
 
-        heuristics = []
-        for i,comb in enumerate(feature_combinations):
-            heuristics.append(self.fit_function(comb, model))
+            feature_combinations_final.append(feature_combinations)
+            heuristics_final.append(heuristics)
 
-        return heuristics, feature_combinations
+        return heuristics_final, feature_combinations_final
 
     def beta_optimizer(self,marginals, ground):
         """ 
@@ -115,18 +116,19 @@ class Synthesizer(object):
         return beta_params[np.argmax(np.array(f1))]
 
 
-    def find_optimal_beta(self, heuristics, X, ground):
+    def find_optimal_beta(self, heuristics, X, feat_combos, ground):
         """ 
         Returns optimal beta for given heuristics
 
         heuristics: list of pre-trained logistic regression models
-        X: primitive matrix to apply heuristics to
+        X: primitive matrix
+        feat_combos: feature indices to apply heuristics to
         ground: ground truth associated with X data
         """
 
         beta_opt = []
         for i,hf in enumerate(heuristics):
-            marginals = hf.predict_proba(X[:,i])[:,1]
+            marginals = hf.predict_proba(X[:,feat_combos[i]])[:,1]
             labels_cutoff = np.zeros(np.shape(marginals))
             beta_opt.append((self.beta_optimizer(marginals, ground)))
         return beta_opt
