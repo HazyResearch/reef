@@ -69,7 +69,8 @@ class DataLoader(object):
 
             val_ground = np.load(data_path+dataset+'/ground_val.npy')
 
-            return train_primitive_matrix, val_primitive_matrix, [], [], val_ground, []
+            common_idx = self.prune_features(val_primitive_matrix, train_primitive_matrix)
+            return train_primitive_matrix[:,common_idx], val_primitive_matrix[:,common_idx], [], [], val_ground, []
 
         elif dataset == 'imdb':
             train_primitive_matrix = np.load(data_path+dataset+'/primitive_matrix_train.npy')
@@ -86,7 +87,6 @@ class DataLoader(object):
             test_ground = np.load(data_path+dataset+'/ground_test.npy')
 
             common_idx = self.prune_features(val_primitive_matrix, train_primitive_matrix)
-
             return train_primitive_matrix[:,common_idx], val_primitive_matrix[:,common_idx], test_primitive_matrix, train_ground, val_ground, test_ground
         
         elif dataset == 'mscoco':
