@@ -89,7 +89,7 @@ class SemiSupervised(BaselineModel):
         #unlabeled data labels are set to -1
         X = np.concatenate((self.val_primitive_matrix, self.train_primitive_matrix))
         val_labels = (self.val_ground+1)/2.
-        train_labels = -1.*np.ones(np.shape(self.train_ground))
+        train_labels = -1.*np.ones(np.shape(self.train_primitive_matrix)[0])
         y = np.concatenate((val_labels, train_labels))
 
         self.model = LabelSpreading(kernel='knn')
@@ -109,7 +109,7 @@ class ContrastiveSemiSupervised(BaselineModel):
         #unlabeled data labels are set to -1
         X = np.concatenate((self.val_primitive_matrix, self.train_primitive_matrix))
         val_labels = (self.val_ground+1)/2.
-        train_labels = -1.*np.ones(np.shape(self.train_ground))
+        train_labels = -1.*np.ones(np.shape(self.train_primitive_matrix)[0])
         y = np.concatenate((val_labels, train_labels))
 
         self.model = CPLELearningModel(basemodel)
