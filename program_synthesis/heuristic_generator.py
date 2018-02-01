@@ -125,7 +125,10 @@ class HeuristicGenerator(object):
                 remainder = inp
                 inp -= len(a[i])
                 i+=1
-            return a[i-1][remainder]
+            try:
+                return a[i-1][remainder] #TODO: CHECK THIS REMAINDER THING WTF IS HAPPENING
+            except:
+                import pdb; pdb.set_trace()
 
         #Select keep best heuristics from generated heuristics
         hf, feat_combos = self.syn.generate_heuristics(model, max_cardinality)
