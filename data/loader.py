@@ -115,9 +115,34 @@ class DataLoader(object):
             val_ground = np.load(data_path+dataset+'/ground_val.npy')
 
             return train_primitive_matrix, val_primitive_matrix, [], train_ground, val_ground, []
-       
 
-       
+        elif dataset == 'discovery':
+            primitive_matrix = np.load(data_path+dataset+'/primitive_matrix.npy')
+            ground = np.load(data_path+dataset+'/ground.npy')
+
+            #Some data processing in here
+            positive_indices = np.where(ground == 1.)[0]
+            negative_indices = np.where(ground == 0.)[0]
+            ground[negative_indices] = -1.
+
+            #To test scaling and class balance issues
+            num_positive = 50
+            num_negative = 50
+            train_val_mult = 5
+
+            #Randomly sample indices
+            positive_choose = np.random.choice(positive_indices, (train_val_mult+1)*num_positive, replace=False)
+            negative_choose = np.random.choice(negative_indices, (train_val_mult+1)*num_negative, replace=False)
+
+
+            #Create train and validation sets (NO TEST FOR NOW)
+            val_primitive_matrix = np.concatenate((primitive_matrix[positive_choose[0:num_positive],:], primitive_matrix[negative_choose[0:num_negative],:]))
+            val_ground = np.concatenate((ground[positive_choose[0:num_positive]], ground[negative_choose[0:num_negative]]))
+
+            train_primitive_matrix = np.concatenate((primitive_matrix[positive_choose[num_positive:(train_val_mult+1)*num_positive],:], primitive_matrix[negative_choose[num_negative:(train_val_mult+1)*num_negative],:]))
+            train_ground = np.concatenate((ground[positive_choose[num_positive:(train_val_mult+1)*num_positive]], ground[negative_choose[num_negative:(train_val_mult+1)*num_negative]]))
+
+            return train_primitive_matrix, val_primitive_matrix, [], train_ground, val_ground, []
 
 
 
