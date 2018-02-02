@@ -1,4 +1,6 @@
 import numpy as np
+import scipy
+from scipy import sparse
 
 class DataLoader(object):
     """ A class to load in appropriate numpy arrays
@@ -143,6 +145,24 @@ class DataLoader(object):
             train_ground = np.concatenate((ground[positive_choose[num_positive:(train_val_mult+1)*num_positive]], ground[negative_choose[num_negative:(train_val_mult+1)*num_negative]]))
 
             return train_primitive_matrix, val_primitive_matrix, [], train_ground, val_ground, []
+
+        elif dataset == 'cdr':
+            filepath = '/dfs/scratch0/paroma/SocraticLearning/cdr/'
+
+            a = np.load(filepath+'X_dev_array.npy')
+            val_primitive_matrix =  np.array(scipy.sparse.csr_matrix((a[0], a[1],a[2])).todense())
+
+            a = np.load(filepath+'X_train_array.npy')
+            train_primitive_matrix =  np.array(scipy.sparse.csr_matrix((a[0], a[1],a[2])).todense())
+
+            common_idx = self.prune_features(val_primitive_matrix, train_primitive_matrix, thresh=0.05)
+
+            val_ground = np.load(filepath+'y_dev_array.npy').ravel()
+            train_ground = np.load(filepath+'y_train_array.npy').ravel()
+            
+
+            return train_primitive_matrix[:,common_idx], val_primitive_matrix[:,common_idx], [], train_ground, val_ground, []
+
 
 
 
