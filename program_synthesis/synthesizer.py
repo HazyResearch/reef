@@ -5,6 +5,7 @@ import multiprocessing as mp
 from sklearn.metrics import f1_score
 from sklearn.linear_model import LogisticRegression
 from sklearn.tree import DecisionTreeClassifier
+from sklearn.neighbors import KNeighborsClassifier
 
 import copy_reg
 import types
@@ -59,7 +60,7 @@ class Synthesizer(object):
         if np.shape(X)[0] == 1:
             X = X.reshape(-1,1)
 
-        # fit decision tree or logistic regression
+        # fit decision tree or logistic regression or knn
         if model == 'dt':
             dt = DecisionTreeClassifier(max_depth=len(comb))
             dt.fit(X,self.val_ground)
@@ -69,6 +70,11 @@ class Synthesizer(object):
             lr = LogisticRegression()
             lr.fit(X,self.val_ground)
             return lr
+
+        elif model == 'nn':
+            nn = KNeighborsClassifier(algorithm='kd_tree')
+            nn.fit(X,self.val_ground)
+            return nn
 
     def generate_heuristics(self, model, max_cardinality=1):
         """ 
@@ -132,9 +138,6 @@ class Synthesizer(object):
             labels_cutoff = np.zeros(np.shape(marginals))
             beta_opt.append((self.beta_optimizer(marginals, ground)))
         return beta_opt
-
-#TODO: function for getting accuracies and TP FP rates
-
 
 
 
