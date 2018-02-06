@@ -105,7 +105,7 @@ class DataLoader(object):
             train_ground = np.load(data_path+dataset+'/ground_train.npy')
             test_ground = np.load(data_path+dataset+'/ground_test.npy')
 
-            common_idx = self.prune_features(val_primitive_matrix, train_primitive_matrix)
+            common_idx = self.prune_features(val_primitive_matrix, train_primitive_matrix, thresh=0.05)
 
             return train_primitive_matrix[:,common_idx], val_primitive_matrix[:,common_idx], test_primitive_matrix, train_ground, val_ground, test_ground
 
@@ -155,7 +155,7 @@ class DataLoader(object):
             a = np.load(filepath+'X_train_array.npy')
             train_primitive_matrix =  np.array(scipy.sparse.csr_matrix((a[0], a[1],a[2])).todense())
 
-            common_idx = self.prune_features(val_primitive_matrix, train_primitive_matrix, thresh=0.05)
+            common_idx = self.prune_features(val_primitive_matrix, train_primitive_matrix, thresh=0.01)
 
             val_ground = np.load(filepath+'y_dev_array.npy').ravel()
             train_ground = np.load(filepath+'y_train_array.npy').ravel()
