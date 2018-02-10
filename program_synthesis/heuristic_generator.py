@@ -121,7 +121,7 @@ class HeuristicGenerator(object):
         def index(a, inp):
             i = 0
             remainder = 0
-            while inp > 0:
+            while inp >= 0:
                 remainder = inp
                 inp -= len(a[i])
                 i+=1
