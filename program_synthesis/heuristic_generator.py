@@ -65,29 +65,34 @@ class HeuristicGenerator(object):
                 scores[i] = np.sum(np.minimum(num_labeled_L[:,i],num_labeled_total))/np.sum(np.maximum(num_labeled_L[:,i],num_labeled_total))
             return 1-scores
         
-        L = np.array([])
+        L_val = np.array([])
+        L_train = np.array([])
         beta_opt = np.array([])
         max_cardinality = len(heuristics)
         for i in range(max_cardinality):
             #Note that the LFs are being applied to the entire val set though they were developed on a subset...
             beta_opt_temp = self.syn.find_optimal_beta(heuristics[i], self.val_primitive_matrix, feat_combos[i], self.val_ground)
-            L_temp = self.apply_heuristics(heuristics[i], self.val_primitive_matrix, feat_combos[i], beta_opt_temp) 
+            L_temp_val = self.apply_heuristics(heuristics[i], self.val_primitive_matrix, feat_combos[i], beta_opt_temp) 
+            L_temp_train = self.apply_heuristics(heuristics[i], self.train_primitive_matrix, feat_combos[i], beta_opt_temp) 
             
             beta_opt = np.append(beta_opt, beta_opt_temp)
             if i == 0:
-                L = np.append(L, L_temp) #converts to 1D array automatically
-                L = np.reshape(L,np.shape(L_temp))
+                L_val = np.append(L_val, L_temp_val) #converts to 1D array automatically
+                L_val = np.reshape(L_val,np.shape(L_temp_val))
+                L_train = np.append(L_train, L_temp_train) #converts to 1D array automatically
+                L_train = np.reshape(L_train,np.shape(L_temp_train))
             else:
-                L = np.concatenate((L, L_temp), axis=1)
+                L_val = np.concatenate((L_val, L_temp_val), axis=1)
+                L_train = np.concatenate((L_train, L_temp_train), axis=1)
         
         #Use F1 trade-off for reliability
-        acc_cov_scores = [f1_score(self.val_ground, L[:,i], average='micro') for i in range(np.shape(L)[1])] 
+        acc_cov_scores = [f1_score(self.val_ground, L_val[:,i], average='micro') for i in range(np.shape(L_val)[1])] 
         acc_cov_scores = np.nan_to_num(acc_cov_scores)
         
         if self.vf != None:
             #Calculate Jaccard score for diversity
-            val_num_labeled = np.sum(np.abs(self.vf.L_val.T), axis=0) 
-            jaccard_scores = calculate_jaccard_distance(val_num_labeled,np.abs(L))
+            train_num_labeled = np.sum(np.abs(self.vf.L_train.T), axis=0) 
+            jaccard_scores = calculate_jaccard_distance(train_num_labeled,np.abs(L_train))
         else:
             jaccard_scores = np.ones(np.shape(acc_cov_scores))
 
