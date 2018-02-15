@@ -105,6 +105,8 @@ class Synthesizer(object):
 
         marginals: confidences for data from a single heuristic
         """
+        #Checking Optimizers
+        #return 0.0	
 
         #Set the range of beta params
         #0.25 instead of 0.0 as a min makes controls coverage better
@@ -118,7 +120,7 @@ class Synthesizer(object):
             labels_cutoff[marginals >= (self.b+beta)] = 1.		
             f1.append(f1_score(ground, labels_cutoff, average='micro'))
          		
-        f1 = np.nan_to_num(f1)		
+        f1 = np.nan_to_num(f1)
         return beta_params[np.argmax(np.array(f1))]
 
 

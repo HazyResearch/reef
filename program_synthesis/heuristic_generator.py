@@ -96,6 +96,12 @@ class HeuristicGenerator(object):
         else:
             jaccard_scores = np.ones(np.shape(acc_cov_scores))
 
+
+        #Checking Optimizers
+        # combined_scores = 0.5*jaccard_scores
+        # sort_idx = np.argsort(combined_scores)[::-1][0:keep]
+        # return sort_idx
+
         #Weighting the two scores to find best heuristic
         combined_scores = 0.5*acc_cov_scores + 0.5*jaccard_scores
         sort_idx = np.argsort(combined_scores)[::-1][0:keep]

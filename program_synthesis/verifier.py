@@ -41,6 +41,11 @@ class Verifier(object):
         self.train_marginals = self.gen_model.marginals(sparse.csr_matrix(self.L_train))
         self.val_marginals = self.gen_model.marginals(sparse.csr_matrix(self.L_val))
 
+        #Hard Code MV
+        # self.train_marginals = (np.sign(np.sum(self.L_train, axis=1))+1.)/2.
+        # self.val_marginals = (np.sign(np.sum(self.L_val, axis=1))+1.)/2.
+
+
     def find_vague_points(self,gamma=0.1,b=0.5):
         """ 
         Find val set indices where marginals are within thresh of b 
