@@ -41,7 +41,7 @@ class BaselineModel(object):
         """
         self.val_marginals = self.model.predict_proba(self.val_primitive_matrix)[:,1]
 
-        if input_primitive_matrix==[]:
+        if input_primitive_matrix!=[]:
             self.train_marginals = self.model.predict_proba(input_primitive_matrix)[:,1]
         else:
             self.train_marginals = self.model.predict_proba(self.train_primitive_matrix)[:,1]
@@ -63,7 +63,7 @@ class BaselineModel(object):
         self.val_coverage = calculate_coverage(self.val_marginals, self.b, self.val_ground)
         self.train_coverage = calculate_coverage(self.train_marginals, self.b, self.train_ground)
         
-        if input_primitive_matrix==[]:
+        if input_primitive_matrix!=[]:
             return self.val_accuracy, [], self.val_coverage, []
         else:
             return self.val_accuracy, self.train_accuracy, self.val_coverage, self.train_coverage 
