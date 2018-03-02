@@ -18,28 +18,47 @@ class DataLoader(object):
         return common_idx
 
 
-    def load_data(self, dataset, data_path='data/', ):
+    def load_data(self, dataset, data_path='/dfs/scratch0/paroma/data/'):
          #TODO: load all and split into train and test and validation here....
         if dataset == 'bone_tumor':
             primitive_matrix = np.load(data_path+dataset+'/primitive_matrix.npy')
+            features = np.load(data_path+dataset+'/features.npy')
             ground = np.load(data_path+dataset+'/ground.npy')
 
             train_primitive_matrix = primitive_matrix[0:400,:]
+            train_feature_matrix = features[0:400,:]
             train_ground = ground[0:400]
-            val_primitive_matrix = primitive_matrix[400:600,:]
-            val_ground = ground[400:600]
-            return train_primitive_matrix, val_primitive_matrix, [], train_ground, val_ground, []
-       
-        elif dataset == 'mammogram':
-            train_primitive_matrix = np.load(data_path+dataset+'/primitive_matrix_train.npy')
-            val_primitive_matrix = np.load(data_path+dataset+'/primitive_matrix_val.npy')
-            test_primitive_matrix = np.load(data_path+dataset+'/primitive_matrix_test.npy')
 
-            train_ground = np.load(data_path+dataset+'/ground_train.npy')
-            val_ground = np.load(data_path+dataset+'/ground_val.npy')
-            test_ground = np.load(data_path+dataset+'/ground_test.npy')
+            val_primitive_matrix = primitive_matrix[400:600,:]
+            val_feature_matrix = features[400:600,:]
+            val_ground = ground[400:600]
+
+            test_primitive_matrix = primitive_matrix[600:802,:]
+            test_feature_matrix = features[600:802,:]
+            test_ground = ground[600:802]
 
             return train_primitive_matrix, val_primitive_matrix, test_primitive_matrix, train_ground, val_ground, test_ground
+       
+        elif dataset == 'mammogram':
+            primitive_matrix = np.load(data_path+dataset+'/primitive_matrix.npy')
+            primitive_matrix = primitive_matrix.T
+            ground = np.load(data_path+dataset+'/ground.npy')
+
+            train_primitive_matrix = primitive_matrix[0:1488,:]
+            train_ground = ground[0:1488]
+            val_primitive_matrix = primitive_matrix[1488:1674,:]
+            val_ground = ground[1488:1674]
+            return primitive_matrix, train_primitive_matrix, val_primitive_matrix, [], train_ground, val_ground, []
+    
+            # train_primitive_matrix = np.load(data_path+dataset+'/primitive_matrix_train.npy')
+            # val_primitive_matrix = np.load(data_path+dataset+'/primitive_matrix_val.npy')
+            # test_primitive_matrix = np.load(data_path+dataset+'/primitive_matrix_test.npy')
+
+            # train_ground = np.load(data_path+dataset+'/ground_train.npy')
+            # val_ground = np.load(data_path+dataset+'/ground_val.npy')
+            # test_ground = np.load(data_path+dataset+'/ground_test.npy')
+
+            # return train_primitive_matrix, val_primitive_matrix, test_primitive_matrix, train_ground, val_ground, test_ground
         
         elif dataset == 'visual_genome':
             train_primitive_matrix = np.load(data_path+dataset+'/primitive_matrix_train.npy')
