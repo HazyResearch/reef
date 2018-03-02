@@ -2,6 +2,16 @@ import numpy as np
 from scipy import sparse
 from label_aggregator import LabelAggregator
 
+#FIX THIS HACKK
+def odds_to_prob(l):
+  """
+  This is the inverse logit function logit^{-1}:
+    l       = \log\frac{p}{1-p}
+    \exp(l) = \frac{p}{1-p}
+    p       = \frac{\exp(l)}{1 + \exp(l)}
+  """
+  return np.exp(l) / (1.0 + np.exp(l))
+
 class Verifier(object):
     """
     A class for the Snorkel Model Verifier
@@ -33,6 +43,7 @@ class Verifier(object):
             gen_model = LabelAggregator()
             gen_model.train(self.L_train, rate=5e-3, mu=1e-4, verbose=False)
         self.gen_model = gen_model
+        #print self.gen_model.learned_lf_stats()
 
     def assign_marginals(self):
         """ 
@@ -40,6 +51,7 @@ class Verifier(object):
         """ 
         self.train_marginals = self.gen_model.marginals(sparse.csr_matrix(self.L_train))
         self.val_marginals = self.gen_model.marginals(sparse.csr_matrix(self.L_val))
+        print 'Learned Accuracies: ', odds_to_prob(self.gen_model.w)
 
         #Hard Code MV
         # self.train_marginals = (np.sign(np.sum(self.L_train, axis=1))+1.)/2.
