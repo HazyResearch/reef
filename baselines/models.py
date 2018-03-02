@@ -8,11 +8,6 @@ from sklearn.linear_model import SGDClassifier
 #TODO: work in progress, waiting on Cmake
 # import os
 import sys
-sys.path.append('/dfs/scratch0/paroma/semisup-learn/')
-sys.path.append('/dfs/scratch0/paroma/nlopt/install/lib/python2.7/site-packages/')
-# sys.path.append('/dfs/scratch0/paroma/include/')
-from frameworks.CPLELearning import CPLELearningModel
-
 
 class BaselineModel(object):
     """
