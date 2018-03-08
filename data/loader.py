@@ -166,19 +166,18 @@ class DataLoader(object):
             return train_primitive_matrix, val_primitive_matrix, [], train_ground, val_ground, []
 
         elif dataset == 'cdr':
-            filepath = '/dfs/scratch0/paroma/SocraticLearning/cdr/'
+            train_ground = np.load(data_path+dataset+'/ground_train.npy')
+            train_ground[np.where(train_ground == 0.)] = -1.
+            val_ground = np.load(data_path+dataset+'/ground_val.npy')
+            val_ground[np.where(val_ground == 0.)] = -1.
 
-            a = np.load(filepath+'X_dev_array.npy')
-            val_primitive_matrix =  np.array(scipy.sparse.csr_matrix((a[0], a[1],a[2])).todense())
+            train_features = np.load('/afs/cs.stanford.edu/u/paroma/reef/data/split0_features.npz')
+            train_primitive_matrix =  np.array(scipy.sparse.csr_matrix((train_features['data'], train_features['indices'], train_features['indptr'])).todense()).astype(float)
 
-            a = np.load(filepath+'X_train_array.npy')
-            train_primitive_matrix =  np.array(scipy.sparse.csr_matrix((a[0], a[1],a[2])).todense())
+            val_features = np.load('/afs/cs.stanford.edu/u/paroma/reef/data/split1_features.npz')
+            val_primitive_matrix =  np.array(scipy.sparse.csr_matrix((val_features['data'], val_features['indices'], val_features['indptr'])).todense()).astype(float)
 
             common_idx = self.prune_features(val_primitive_matrix, train_primitive_matrix, thresh=0.01)
-
-            val_ground = np.load(filepath+'y_dev_array.npy').ravel()
-            train_ground = np.load(filepath+'y_train_array.npy').ravel()
-            
 
             return train_primitive_matrix[:,common_idx], val_primitive_matrix[:,common_idx], [], train_ground, val_ground, []
 
