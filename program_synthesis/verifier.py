@@ -51,7 +51,7 @@ class Verifier(object):
         """ 
         self.train_marginals = self.gen_model.marginals(sparse.csr_matrix(self.L_train))
         self.val_marginals = self.gen_model.marginals(sparse.csr_matrix(self.L_val))
-        print 'Learned Accuracies: ', odds_to_prob(self.gen_model.w)
+        #print 'Learned Accuracies: ', odds_to_prob(self.gen_model.w)
 
         #Hard Code MV
         # self.train_marginals = (np.sign(np.sum(self.L_train, axis=1))+1.)/2.

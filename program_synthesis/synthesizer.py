@@ -7,17 +7,35 @@ from sklearn.linear_model import LogisticRegression
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.neighbors import KNeighborsClassifier
 
-import copy_reg
-import types
+#import ray
 
-def _pickle_method(m):
-    if m.im_self is None:
-        return getattr, (m.im_class, m.im_func.func_name)
-    else:
-        return getattr, (m.im_self, m.im_func.func_name)
+#@ray.remote
+def fit_function(val_primitive_matrix, val_ground, comb, model):
+    """ 
+    Fits a single logistic regression or decision tree model
 
-copy_reg.pickle(types.MethodType, _pickle_method)
+    comb: feature combination to fit model over
+    model: fit logistic regression or a decision tree
+    """
+    X = val_primitive_matrix[:,comb]
+    if np.shape(X)[0] == 1:
+        X = X.reshape(-1,1)
 
+    # fit decision tree or logistic regression or knn
+    if model == 'dt':
+        dt = DecisionTreeClassifier(max_depth=len(comb))
+        dt.fit(X,val_ground)
+        return dt
+
+    elif model == 'lr':
+        lr = LogisticRegression()
+        lr.fit(X,val_ground)
+        return lr
+
+    elif model == 'nn':
+        nn = KNeighborsClassifier(algorithm='kd_tree')
+        nn.fit(X,val_ground)
+        return nn
 
 class Synthesizer(object):
     """
@@ -49,33 +67,6 @@ class Synthesizer(object):
 
         return feature_combinations
 
-    def fit_function(self, comb, model):
-        """ 
-        Fits a single logistic regression or decision tree model
-
-        comb: feature combination to fit model over
-        model: fit logistic regression or a decision tree
-        """
-        X = self.val_primitive_matrix[:,comb]
-        if np.shape(X)[0] == 1:
-            X = X.reshape(-1,1)
-
-        # fit decision tree or logistic regression or knn
-        if model == 'dt':
-            dt = DecisionTreeClassifier(max_depth=len(comb))
-            dt.fit(X,self.val_ground)
-            return dt
-
-        elif model == 'lr':
-            lr = LogisticRegression()
-            lr.fit(X,self.val_ground)
-            return lr
-
-        elif model == 'nn':
-            nn = KNeighborsClassifier(algorithm='kd_tree')
-            nn.fit(X,self.val_ground)
-            return nn
-
     def generate_heuristics(self, model, max_cardinality=1):
         """ 
         Generates heuristics over given feature cardinality
@@ -83,17 +74,20 @@ class Synthesizer(object):
         model: fit logistic regression or a decision tree
         max_cardinality: max number of features each heuristic operates over
         """
-        #have to make a dictionary?? or feature combinations here? or list of arrays?
         feature_combinations_final = []
         heuristics_final = []
         for cardinality in range(1, max_cardinality+1):
             feature_combinations = self.generate_feature_combinations(cardinality)
 
             heuristics = []
+            import time
+            start = time.time()
             for i,comb in enumerate(feature_combinations):
+                #heuristics.append(fit_function.remote(self.val_primitive_matrix, self.val_ground, comb, model))
                 heuristics.append(self.fit_function(comb, model))
 
             feature_combinations_final.append(feature_combinations)
+            #heuristics_final.append([ray.get(hf) for hf in heuristics])
             heuristics_final.append(heuristics)
 
         return heuristics_final, feature_combinations_final
