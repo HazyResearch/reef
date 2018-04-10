@@ -1,6 +1,63 @@
 import numpy as np
 import scipy
+import json
+import sklearn.cross_validation
+
 from scipy import sparse
+from sklearn.feature_extraction.text import CountVectorizer
+
+def parse_file(filename):
+
+    def parse(filename):
+        movies = []
+        with open(filename) as f:
+            for line in f:
+                obj = json.loads(line)
+                movies.append(obj)
+        return movies
+
+    f = parse(filename)
+    gt = []
+    plots = []
+    idx = []
+    for i,movie in enumerate(f):
+        genre = movie['Genre']
+        if 'Action' in genre and 'Romance' in genre:
+            continue
+        elif 'Action' in genre:
+            plots = plots+[movie['Plot']]
+            gt.append(1)
+            idx.append(i)
+        elif 'Romance' in genre:
+            plots = plots+[movie['Plot']]
+            gt.append(-1)
+            idx.append(i)
+        else:
+            continue  
+    
+    return plots, gt
+
+def split_data(X, plots, y):
+    np.random.seed(1234)
+    num_sample = np.shape(X)[0]
+    num_test = 500
+
+    X_test = X[0:num_test,:]
+    X_train = X[num_test:, :]
+    plots_train = plots[num_test:]
+    plots_test = plots[0:num_test]
+
+    y_test = y[0:num_test]
+    y_train = y[num_test:]
+
+    # split dev/test
+    test_ratio = 0.2
+    X_tr, X_te, y_tr, y_te, plots_tr, plots_te = \
+        sklearn.cross_validation.train_test_split(X_train, y_train, plots_train, test_size = test_ratio)
+
+    return np.array(X_tr.todense()), np.array(X_te.todense()), np.array(X_test.todense()), \
+        y_tr, y_te, y_test, plots_tr, plots_te, plots_test
+
 
 class DataLoader(object):
     """ A class to load in appropriate numpy arrays
@@ -17,22 +74,25 @@ class DataLoader(object):
 
         return common_idx
 
+    def load_data(self, dataset, data_path='./data/imdb/'):
+        #Parse Files
+        plots, labels = parse_file(data_path+'budgetandactors.txt')
+        #read_plots('imdb_plots.tsv')
 
-    def load_data(self, dataset, data_path='/dfs/scratch0/paroma/data/'):
-         #TODO: load all and split into train and test and validation here....
-        if dataset == 'imdb':
-            train_primitive_matrix = np.load(data_path+dataset+'/primitive_matrix_train.npy')
-            train_primitive_matrix = np.array(train_primitive_matrix.item().todense())
+        #Featurize Plots  
+        vectorizer = CountVectorizer(min_df=1, binary=True, \
+            decode_error='ignore', strip_accents='ascii', ngram_range=(1,2))
+        X = vectorizer.fit_transform(plots)
+        valid_feats = np.where(np.sum(X,0)> 2)[1]
+        X = X[:,valid_feats]
 
-            val_primitive_matrix = np.load(data_path+dataset+'/primitive_matrix_val.npy')
-            val_primitive_matrix = np.array(val_primitive_matrix.item().todense())
+        #Split Dataset into Train, Val, Test
+        train_primitive_matrix, val_primitive_matrix, test_primitive_matrix, \
+            train_ground, val_ground, test_ground, \
+            train_plots, val_plots, test_plots = split_data(X, plots, labels)
 
-            test_primitive_matrix = np.load(data_path+dataset+'/primitive_matrix_test.npy')
-            test_primitive_matrix = np.array(test_primitive_matrix.item().todense())
-
-            val_ground = np.load(data_path+dataset+'/ground_val.npy')
-            train_ground = np.load(data_path+dataset+'/ground_train.npy')
-            test_ground = np.load(data_path+dataset+'/ground_test.npy')
-
-            common_idx = self.prune_features(val_primitive_matrix, train_primitive_matrix)
-            return train_primitive_matrix[:,common_idx], val_primitive_matrix[:,common_idx], test_primitive_matrix, train_ground, val_ground, test_ground
+        #Prune Feature Space
+        common_idx = self.prune_features(val_primitive_matrix, train_primitive_matrix)
+        return train_primitive_matrix[:,common_idx], val_primitive_matrix[:,common_idx], test_primitive_matrix[:,common_idx], \
+            train_ground, val_ground, test_ground, \
+            train_plots, val_plots, test_plots
