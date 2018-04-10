@@ -118,10 +118,10 @@ class Synthesizer(object):
             labels_cutoff = np.zeros(np.shape(marginals))		
             labels_cutoff[marginals <= (self.b-beta)] = -1.		
             labels_cutoff[marginals >= (self.b+beta)] = 1.		
-            f1.append(f1_score(ground, labels_cutoff, average='micro'))
+            f1.append(f1_score(ground, labels_cutoff, average='weighted'))
          		
         f1 = np.nan_to_num(f1)
-        return beta_params[np.argmax(np.array(f1))]
+        return beta_params[np.argsort(np.array(f1))[-1]]
 
 
     def find_optimal_beta(self, heuristics, X, feat_combos, ground):
@@ -140,7 +140,6 @@ class Synthesizer(object):
             labels_cutoff = np.zeros(np.shape(marginals))
             beta_opt.append((self.beta_optimizer(marginals, ground)))
         return beta_opt
-
 
 
 

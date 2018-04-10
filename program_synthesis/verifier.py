@@ -2,7 +2,6 @@ import numpy as np
 from scipy import sparse
 from label_aggregator import LabelAggregator
 
-#FIX THIS HACKK
 def odds_to_prob(l):
   """
   This is the inverse logit function logit^{-1}:
@@ -41,9 +40,8 @@ class Verifier(object):
             gen_model.train(self.L_train, epochs=100, decay=0.001 ** (1.0 / 100), step_size=0.005, reg_param=1.0)
         else:
             gen_model = LabelAggregator()
-            gen_model.train(self.L_train, rate=5e-3, mu=1e-4, verbose=False)
+            gen_model.train(self.L_train, rate=1e-3, mu=1e-6, verbose=False)
         self.gen_model = gen_model
-        #print self.gen_model.learned_lf_stats()
 
     def assign_marginals(self):
         """ 
@@ -51,12 +49,7 @@ class Verifier(object):
         """ 
         self.train_marginals = self.gen_model.marginals(sparse.csr_matrix(self.L_train))
         self.val_marginals = self.gen_model.marginals(sparse.csr_matrix(self.L_val))
-        print 'Learned Accuracies: ', odds_to_prob(self.gen_model.w)
-
-        #Hard Code MV
-        # self.train_marginals = (np.sign(np.sum(self.L_train, axis=1))+1.)/2.
-        # self.val_marginals = (np.sign(np.sum(self.L_val, axis=1))+1.)/2.
-
+        #print 'Learned Accuracies: ', odds_to_prob(self.gen_model.w)
 
     def find_vague_points(self,gamma=0.1,b=0.5):
         """ 

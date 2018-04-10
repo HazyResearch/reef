@@ -4,9 +4,6 @@ from sklearn.ensemble import AdaBoostClassifier
 from sklearn.semi_supervised import LabelSpreading
 from sklearn.linear_model import SGDClassifier
 
-#need to clone https://github.com/tmadl/semisup-learn
-#TODO: work in progress, waiting on Cmake
-# import os
 import sys
 
 class BaselineModel(object):
@@ -42,13 +39,13 @@ class BaselineModel(object):
             self.train_marginals = self.model.predict_proba(self.train_primitive_matrix)[:,1]
 
         def calculate_accuracy(marginals, b, ground):
-            #TODO: HOW DO I USE b!
+            #TODO: Use b for class imbalance?
             total = np.shape(np.where(marginals != 0.5))[1]
             labels = np.sign(2*(marginals - 0.5))
             return np.sum(labels == ground)/float(total)
     
         def calculate_coverage(marginals, b, ground):
-            #TODO: HOW DO I USE b!
+            #TODO: Use b for class imbalance?
             total = np.shape(np.where(marginals != 0.5))[1]
             labels = np.sign(2*(marginals - 0.5))
             return total/float(len(labels))
@@ -96,26 +93,6 @@ class SemiSupervised(BaselineModel):
         y = np.concatenate((val_labels, train_labels))
 
         self.model = LabelSpreading(kernel='knn')
-        self.model.fit(X, y)
-
-class ContrastiveSemiSupervised(BaselineModel):
-    """
-    Contrastive Pessimistic Likelihood Estimation Implementation
-    """
-
-    def fit(self):
-        #First fit a LR model on the labeled data
-        basemodel = SGDClassifier(loss='log', penalty='l1') # scikit logistic regression
-        basemodel.fit(self.val_primitive_matrix,(self.val_ground+1)/2.)
-
-        #Need to concatenate labeled and unlabeled data
-        #unlabeled data labels are set to -1
-        X = np.concatenate((self.val_primitive_matrix, self.train_primitive_matrix))
-        val_labels = (self.val_ground+1)/2.
-        train_labels = -1.*np.ones(np.shape(self.train_primitive_matrix)[0])
-        y = np.concatenate((val_labels, train_labels))
-
-        self.model = CPLELearningModel(basemodel)
         self.model.fit(X, y)
 
 

@@ -96,12 +96,6 @@ class HeuristicGenerator(object):
         else:
             jaccard_scores = np.ones(np.shape(acc_cov_scores))
 
-
-        #Checking Optimizers
-        # combined_scores = 0.5*jaccard_scores
-        # sort_idx = np.argsort(combined_scores)[::-1][0:keep]
-        # return sort_idx
-
         #Weighting the two scores to find best heuristic
         combined_scores = 0.5*acc_cov_scores + 0.5*jaccard_scores
         sort_idx = np.argsort(combined_scores)[::-1][0:keep]
@@ -196,13 +190,11 @@ class HeuristicGenerator(object):
         self.train_marginals = self.vf.train_marginals
 
         def calculate_accuracy(marginals, b, ground):
-            #TODO: HOW DO I USE b!
             total = np.shape(np.where(marginals != 0.5))[1]
             labels = np.sign(2*(marginals - 0.5))
             return np.sum(labels == ground)/float(total)
     
         def calculate_coverage(marginals, b, ground):
-            #TODO: HOW DO I USE b!
             total = np.shape(np.where(marginals != 0.5))[1]
             labels = np.sign(2*(marginals - 0.5))
             return total/float(len(labels))
@@ -222,13 +214,11 @@ class HeuristicGenerator(object):
 
 
         def calculate_accuracy(marginals, b, ground):
-            #TODO: HOW DO I USE b!
             total = np.shape(np.where(marginals != 0.5))[1]
             labels = np.sign(2*(marginals - 0.5))
             return np.sum(labels == ground)/float(total)
     
         def calculate_coverage(marginals, b, ground):
-            #TODO: HOW DO I USE b!
             total = np.shape(np.where(marginals != 0))[1]
             labels = marginals
             return total/float(len(labels))
