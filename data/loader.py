@@ -35,7 +35,7 @@ def parse_file(filename):
         else:
             continue  
     
-    return plots, gt
+    return np.array(plots), np.array(gt)
 
 def split_data(X, plots, y):
     np.random.seed(1234)
@@ -56,7 +56,7 @@ def split_data(X, plots, y):
         sklearn.cross_validation.train_test_split(X_train, y_train, plots_train, test_size = test_ratio)
 
     return np.array(X_tr.todense()), np.array(X_te.todense()), np.array(X_test.todense()), \
-        y_tr, y_te, y_test, plots_tr, plots_te, plots_test
+        np.array(y_tr), np.array(y_te), np.array(y_test), plots_tr, plots_te, plots_test
 
 
 class DataLoader(object):
@@ -94,5 +94,5 @@ class DataLoader(object):
         #Prune Feature Space
         common_idx = self.prune_features(val_primitive_matrix, train_primitive_matrix)
         return train_primitive_matrix[:,common_idx], val_primitive_matrix[:,common_idx], test_primitive_matrix[:,common_idx], \
-            train_ground, val_ground, test_ground, \
+            np.array(train_ground), np.array(val_ground), np.array(test_ground), \
             train_plots, val_plots, test_plots
