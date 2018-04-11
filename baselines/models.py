@@ -4,8 +4,6 @@ from sklearn.ensemble import AdaBoostClassifier
 from sklearn.semi_supervised import LabelSpreading
 from sklearn.linear_model import SGDClassifier
 
-import sys
-
 class BaselineModel(object):
     """
     A base class for all sklearn-esque baseline methods
