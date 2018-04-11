@@ -1,6 +1,5 @@
 future
 jupyter
-json
 matplotlib
 numpy>=1.11
 pandas
