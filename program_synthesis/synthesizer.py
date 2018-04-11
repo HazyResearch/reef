@@ -90,9 +90,7 @@ class Synthesizer(object):
         Uses F1 score that maximizes the F1 score
 
         marginals: confidences for data from a single heuristic
-        """
-        #Checking Optimizers
-        #return 0.0	
+        """	
 
         #Set the range of beta params
         #0.25 instead of 0.0 as a min makes controls coverage better
