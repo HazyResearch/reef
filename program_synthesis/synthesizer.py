@@ -1,4 +1,5 @@
 import numpy as np
+import itertools
 
 from sklearn.metrics import f1_score
 from sklearn.linear_model import LogisticRegression
