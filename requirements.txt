@@ -1,0 +1,11 @@
+future
+jupyter
+json
+matplotlib
+numpy>=1.11
+pandas
+scipy>=0.18
+scikit-learn
+tensorflow>=1.0
+keras
+
