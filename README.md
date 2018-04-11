@@ -4,7 +4,7 @@
 Reef is an automated system for labeling training data based on a small labeled dataset. Reef utilizes ideas from program synthesis to *automatically* generate a set of interpretable heuristics that are then used to label unlabeled training data efficiently. 
 
 ## Installation
-Reef uses Python 2. The Python package requirements are in the file `requirements.txt`. If you have Snorkel, can set a flag [here](https://github.com/HazyResearch/reef/blob/c20c248fc091a7caf4dc59d355f833e6d589e2fe/program_synthesis/heuristic_generator.py#L155) as True but there is a simple version of learning heuristic accuracies in this repo as well.
+**Reef uses Python 2.** The Python package requirements are in the file `requirements.txt`. If you have Snorkel, can set a flag [here](https://github.com/HazyResearch/reef/blob/c20c248fc091a7caf4dc59d355f833e6d589e2fe/program_synthesis/heuristic_generator.py#L155) as True but there is a simple version of learning heuristic accuracies in this repo as well.
 
 ## Reef Workflow Overview
 The inputs to Reef are the following: 
