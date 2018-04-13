@@ -4,7 +4,6 @@ from keras.layers import Dense, LSTM
 from keras.layers.embeddings import Embedding
 from keras.preprocessing import sequence
 from keras.preprocessing.text import Tokenizer
-from pdb import set_trace as t
 
 #top_words=5000
 

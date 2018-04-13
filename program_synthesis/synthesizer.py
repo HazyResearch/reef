@@ -1,23 +1,10 @@
 import numpy as np
 import itertools
-import multiprocessing as mp
 
 from sklearn.metrics import f1_score
 from sklearn.linear_model import LogisticRegression
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.neighbors import KNeighborsClassifier
-
-import copy_reg
-import types
-
-def _pickle_method(m):
-    if m.im_self is None:
-        return getattr, (m.im_class, m.im_func.func_name)
-    else:
-        return getattr, (m.im_self, m.im_func.func_name)
-
-copy_reg.pickle(types.MethodType, _pickle_method)
-
 
 class Synthesizer(object):
     """
@@ -104,9 +91,7 @@ class Synthesizer(object):
         Uses F1 score that maximizes the F1 score
 
         marginals: confidences for data from a single heuristic
-        """
-        #Checking Optimizers
-        #return 0.0	
+        """	
 
         #Set the range of beta params
         #0.25 instead of 0.0 as a min makes controls coverage better
