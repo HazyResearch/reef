@@ -65,6 +65,15 @@ class Verifier(object):
         val_idx = np.where(np.abs(self.val_marginals-b) <= gamma)
         return val_idx[0]
 
+    def find_weighted_vague_points(self,gamma=None,b=None):
+        """ 
+        Return weights for the val set according to their confidence
+        Confidences are in range [0,0.5], then normalized to sum to 1
+        """
+        weights = -np.abs(self.val_marginals - 0.5) + 0.5
+        normalized_weights = weights/np.sum(weights)
+        return len(normalized_weights)*normalized_weights
+
     def find_incorrect_points(self,b=0.5):
         """ Find val set indices where marginals are incorrect """
         val_labels = 2*(self.val_marginals > b)-1

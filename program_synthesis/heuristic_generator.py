@@ -108,7 +108,7 @@ class HeuristicGenerator(object):
         return sort_idx
      
 
-    def run_synthesizer(self, max_cardinality=1, idx=None, keep=1, model='lr'):
+    def run_synthesizer(self, max_cardinality=1, idx=None, weights=None, keep=1, model='lr'):
         """ 
         Generates Synthesizer object and saves all generated heuristics
 
@@ -123,10 +123,9 @@ class HeuristicGenerator(object):
         else:
             primitive_matrix = self.val_primitive_matrix[idx,:]
             ground = self.val_ground[idx]
-
-
+        
         #Generate all possible heuristics
-        self.syn = Synthesizer(primitive_matrix, ground, b=self.b)
+        self.syn = Synthesizer(primitive_matrix, ground, b=self.b, weights=weights)
 
         #Un-flatten indices
         def index(a, inp):
@@ -185,7 +184,7 @@ class HeuristicGenerator(object):
         #gamma_opt = self.gamma
         vague_idx = self.vf.find_vague_points(b=self.b, gamma=gamma_opt)
         incorrect_idx = vague_idx
-        self.feedback_idx = list(set(list(np.concatenate((vague_idx,incorrect_idx)))))   
+        self.feedback_idx = list(set(list(np.concatenate((vague_idx,incorrect_idx)))))  
 
 
     def evaluate(self):

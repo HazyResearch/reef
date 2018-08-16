@@ -7,41 +7,11 @@ from sklearn.linear_model import LogisticRegression
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.neighbors import KNeighborsClassifier
 
-#import ray
-
-#@ray.remote
-def fit_function(val_primitive_matrix, val_ground, comb, model):
-    """ 
-    Fits a single logistic regression or decision tree model
-
-    comb: feature combination to fit model over
-    model: fit logistic regression or a decision tree
-    """
-    X = val_primitive_matrix[:,comb]
-    if np.shape(X)[0] == 1:
-        X = X.reshape(-1,1)
-
-    # fit decision tree or logistic regression or knn
-    if model == 'dt':
-        dt = DecisionTreeClassifier(max_depth=len(comb))
-        dt.fit(X,val_ground)
-        return dt
-
-    elif model == 'lr':
-        lr = LogisticRegression()
-        lr.fit(X,val_ground)
-        return lr
-
-    elif model == 'nn':
-        nn = KNeighborsClassifier(algorithm='kd_tree')
-        nn.fit(X,val_ground)
-        return nn
-
 class Synthesizer(object):
     """
     A class to synthesize heuristics from primitives and validation labels
     """
-    def __init__(self, primitive_matrix, val_ground,b=0.5):
+    def __init__(self, primitive_matrix, val_ground,b=0.5,weights=None):
         """ 
         Initialize Synthesizer object
 
@@ -52,6 +22,7 @@ class Synthesizer(object):
         self.val_ground = val_ground
         self.p = np.shape(self.val_primitive_matrix)[1]
         self.b=b
+        self.weights = weights
 
     def generate_feature_combinations(self, cardinality=1):
         """ 
@@ -66,6 +37,34 @@ class Synthesizer(object):
             feature_combinations.append(comb)
 
         return feature_combinations
+    
+    def fit_function(self, comb, model):
+        """ 
+        Fits a single logistic regression or decision tree model
+
+        comb: feature combination to fit model over
+        model: fit logistic regression or a decision tree
+        weights: sample_weights when fitting model
+        """
+        X = self.val_primitive_matrix[:,comb]
+        if np.shape(X)[0] == 1:
+            X = X.reshape(-1,1)
+
+        # fit decision tree or logistic regression or knn
+        if model == 'dt':
+            dt = DecisionTreeClassifier(max_depth=len(comb))
+            dt.fit(X,self.val_ground, sample_weight=self.weights)
+            return dt
+
+        elif model == 'lr':
+            lr = LogisticRegression()
+            lr.fit(X,self.val_ground, sample_weight=self.weights)
+            return lr
+
+        elif model == 'nn':
+            nn = KNeighborsClassifier(algorithm='kd_tree')
+            nn.fit(X,self.val_ground)
+            return nn
 
     def generate_heuristics(self, model, max_cardinality=1):
         """ 
@@ -80,14 +79,10 @@ class Synthesizer(object):
             feature_combinations = self.generate_feature_combinations(cardinality)
 
             heuristics = []
-            import time
-            start = time.time()
             for i,comb in enumerate(feature_combinations):
-                #heuristics.append(fit_function.remote(self.val_primitive_matrix, self.val_ground, comb, model))
                 heuristics.append(self.fit_function(comb, model))
 
             feature_combinations_final.append(feature_combinations)
-            #heuristics_final.append([ray.get(hf) for hf in heuristics])
             heuristics_final.append(heuristics)
 
         return heuristics_final, feature_combinations_final
