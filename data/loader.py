@@ -171,10 +171,10 @@ class DataLoader(object):
             val_ground = np.load(data_path+dataset+'/ground_val.npy')
             val_ground[np.where(val_ground == 0.)] = -1.
 
-            train_features = np.load('/afs/cs.stanford.edu/u/paroma/reef/data/split0_features.npz')
+            train_features = np.load(data_path+dataset+'/split0_features.npz')
             train_primitive_matrix =  np.array(scipy.sparse.csr_matrix((train_features['data'], train_features['indices'], train_features['indptr'])).todense()).astype(float)
 
-            val_features = np.load('/afs/cs.stanford.edu/u/paroma/reef/data/split1_features.npz')
+            val_features = np.load(data_path+dataset+'/split1_features.npz')
             val_primitive_matrix =  np.array(scipy.sparse.csr_matrix((val_features['data'], val_features['indices'], val_features['indptr'])).todense()).astype(float)
 
             common_idx = self.prune_features(val_primitive_matrix, train_primitive_matrix, thresh=0.01)
