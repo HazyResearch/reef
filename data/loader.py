@@ -17,6 +17,15 @@ class DataLoader(object):
 
         return common_idx
 
+    
+    def save_sparse_csr(self, filename, array):
+        np.savez(filename, data=array.data, indices=array.indices,
+                indptr=array.indptr, shape=array.shape)
+
+    def load_sparse_csr(self, filename):
+        loader = np.load(filename)
+        return sparse.csr_matrix((loader['data'], loader['indices'], loader['indptr']), shape=loader['shape'])
+
 
     def load_data(self, dataset, data_path='/dfs/scratch0/paroma/data/'):
          #TODO: load all and split into train and test and validation here....
@@ -50,15 +59,15 @@ class DataLoader(object):
             val_ground = ground[1488:1674]
             return primitive_matrix, train_primitive_matrix, val_primitive_matrix, [], train_ground, val_ground, []
     
-            # train_primitive_matrix = np.load(data_path+dataset+'/primitive_matrix_train.npy')
-            # val_primitive_matrix = np.load(data_path+dataset+'/primitive_matrix_val.npy')
-            # test_primitive_matrix = np.load(data_path+dataset+'/primitive_matrix_test.npy')
+            train_primitive_matrix = np.load(data_path+dataset+'/primitive_matrix_train.npy')
+            val_primitive_matrix = np.load(data_path+dataset+'/primitive_matrix_val.npy')
+            test_primitive_matrix = np.load(data_path+dataset+'/primitive_matrix_test.npy')
 
-            # train_ground = np.load(data_path+dataset+'/ground_train.npy')
-            # val_ground = np.load(data_path+dataset+'/ground_val.npy')
-            # test_ground = np.load(data_path+dataset+'/ground_test.npy')
+            train_ground = np.load(data_path+dataset+'/ground_train.npy')
+            val_ground = np.load(data_path+dataset+'/ground_val.npy')
+            test_ground = np.load(data_path+dataset+'/ground_test.npy')
 
-            # return train_primitive_matrix, val_primitive_matrix, test_primitive_matrix, train_ground, val_ground, test_ground
+            return train_primitive_matrix, val_primitive_matrix, test_primitive_matrix, train_ground, val_ground, test_ground
         
         elif dataset == 'visual_genome':
             train_primitive_matrix = np.load(data_path+dataset+'/primitive_matrix_train.npy')
@@ -180,6 +189,24 @@ class DataLoader(object):
             common_idx = self.prune_features(val_primitive_matrix, train_primitive_matrix, thresh=0.01)
 
             return train_primitive_matrix[:,common_idx], val_primitive_matrix[:,common_idx], [], train_ground, val_ground, []
+        
+        elif dataset == hardware:
+            folder = '/dfs/scratch0/paroma/fonduer/'
+            F_train = load_sparse_csr(folder+'F_train.npz')
+            F_dev = load_sparse_csr(folder+'F_dev.npz')
+            train_ground = np.load(folder+'train_ground.npy')
+            val_ground = np.load(folder+'dev_ground.npy')
+
+            feat_names = np.load(folder+'feat_names.npy')
+            primitive_idx = [i for i in range(len(feat_names)) if (feat_names[i].startswith('STR_') or feat_names[i].startswith('TAB_') or feat_names[i].startswith('VIZ_'))]
+            feat_idx = list(set(range(len(feat_names))) - set(primitive_idx))
+
+            val_primitive_matrix = 1
+            train_primitive_matrix = 1
+
+
+
+
 
 
 

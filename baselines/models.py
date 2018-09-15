@@ -79,7 +79,7 @@ class DecisionTree(BaselineModel):
     """
 
     def fit(self):
-        self.model = DecisionTreeClassifier(random_state=0)
+        self.model = DecisionTreeClassifier(random_state=0, min_samples_leaf=5, min_samples_split=10)
         self.model.fit(self.val_primitive_matrix, self.val_ground)
 
 class SemiSupervised(BaselineModel):
@@ -95,7 +95,7 @@ class SemiSupervised(BaselineModel):
         train_labels = -1.*np.ones(np.shape(self.train_primitive_matrix)[0])
         y = np.concatenate((val_labels, train_labels))
 
-        self.model = LabelSpreading(kernel='knn')
+        self.model = LabelSpreading(kernel='knn', max_iter=100)
         self.model.fit(X, y)
 
 class ContrastiveSemiSupervised(BaselineModel):

@@ -5,6 +5,18 @@ from sklearn.metrics import f1_score
 from program_synthesis.synthesizer import Synthesizer
 from program_synthesis.verifier import Verifier
 
+def calculate_accuracy(marginals, b, ground):
+    #TODO: HOW DO I USE b!
+    total = np.shape(np.where(marginals != 0.5))[1]
+    labels = np.sign(2*(marginals - 0.5))
+    return np.sum(labels == ground)/float(total)
+
+def calculate_coverage(marginals, b, ground):
+    #TODO: HOW DO I USE b!
+    total = np.shape(np.where(marginals != 0.5))[1]
+    labels = np.sign(2*(marginals - 0.5))
+    return total/float(len(labels))
+
 class HeuristicGenerator(object):
     """
     A class to go through the synthesizer-verifier loop
@@ -98,12 +110,21 @@ class HeuristicGenerator(object):
 
 
         #Checking Optimizers
-        # combined_scores = 0.5*jaccard_scores
-        # sort_idx = np.argsort(combined_scores)[::-1][0:keep]
-        # return sort_idx
+        #combined_scores = 0.5*jaccard_scores
+        #sort_idx = np.argsort(combined_scores)[::-1][0:keep]
+        #return sort_idx
 
         #Weighting the two scores to find best heuristic
-        combined_scores = 0.5*acc_cov_scores + 0.5*jaccard_scores
+        #combined_scores = 0.5*acc_cov_scores + 0.5*jaccard_scores
+        
+        #Data-based weighting for Jaccard and F1 (review)
+        if self.vf != None:
+            train_coverage = calculate_coverage(self.vf.train_marginals, self.b, self.train_ground)
+            print train_coverage
+        else:
+            train_coverage = 0.5
+        combined_scores = train_coverage*acc_cov_scores + (1.0-train_coverage)*jaccard_scores
+
         sort_idx = np.argsort(combined_scores)[::-1][0:keep]
         return sort_idx
      
@@ -193,19 +214,6 @@ class HeuristicGenerator(object):
         """
         self.val_marginals = self.vf.val_marginals
         self.train_marginals = self.vf.train_marginals
-
-        def calculate_accuracy(marginals, b, ground):
-            #TODO: HOW DO I USE b!
-            total = np.shape(np.where(marginals != 0.5))[1]
-            labels = np.sign(2*(marginals - 0.5))
-            return np.sum(labels == ground)/float(total)
-    
-        def calculate_coverage(marginals, b, ground):
-            #TODO: HOW DO I USE b!
-            total = np.shape(np.where(marginals != 0.5))[1]
-            labels = np.sign(2*(marginals - 0.5))
-            return total/float(len(labels))
-
         
         self.val_accuracy = calculate_accuracy(self.val_marginals, self.b, self.val_ground)
         self.train_accuracy = calculate_accuracy(self.train_marginals, self.b, self.train_ground)
