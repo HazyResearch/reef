@@ -103,11 +103,18 @@ class Synthesizer(object):
 
         f1 = []		
  		
-        for beta in beta_params:		
-            labels_cutoff = np.zeros(np.shape(marginals))		
-            labels_cutoff[marginals <= (self.b-beta)] = -1.		
-            labels_cutoff[marginals >= (self.b+beta)] = 1.		
-            f1.append(f1_score(ground, labels_cutoff, average='micro'))
+        for beta in beta_params:
+            if np.shape(marginals)[1] == 2: #binary		
+                labels_cutoff = np.zeros(np.shape(marginals))		
+                labels_cutoff[marginals <= (self.b-beta)] = -1.		
+                labels_cutoff[marginals >= (self.b+beta)] = 1.		
+                f1.append(f1_score(ground, labels_cutoff, average='micro'))
+            else: #MULTI CLASS HERE
+                labels_cutoff = np.zeros(np.shape(marginals)[0])
+                marginals_best = np.max(marginals, axis=1)
+                #only higher than chance makes sense because of 3-way
+                labels_cutoff[marginals_best >= (self.b+beta)] = np.argmax(marginals, axis=1)[marginals_best >= (self.b+beta)]+1. #TODO: +1 here?
+                f1.append(f1_score(ground, labels_cutoff, average='micro'))
          		
         f1 = np.nan_to_num(f1)
         return beta_params[np.argmax(np.array(f1))]
@@ -125,7 +132,7 @@ class Synthesizer(object):
 
         beta_opt = []
         for i,hf in enumerate(heuristics):
-            marginals = hf.predict_proba(X[:,feat_combos[i]])[:,1]
+            marginals = hf.predict_proba(X[:,feat_combos[i]])
             labels_cutoff = np.zeros(np.shape(marginals))
             beta_opt.append((self.beta_optimizer(marginals, ground)))
         return beta_opt

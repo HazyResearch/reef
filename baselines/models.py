@@ -34,16 +34,17 @@ class BaselineModel(object):
         """ 
         Calculate the accuracy and coverage for train and validation sets
         """
-        self.val_marginals = self.model.predict_proba(self.val_primitive_matrix)[:,1]
+        #Using most probable class as the main probabilistic label for evaluation
+        self.val_marginals = np.max(self.model.predict_proba(self.val_primitive_matrix), axis=1)
 
         if input_primitive_matrix!=[]:
-            self.train_marginals = self.model.predict_proba(input_primitive_matrix)[:,1]
+            self.train_marginals = np.max(self.model.predict_proba(self.val_primitive_matrix), axis=1)
         else:
-            self.train_marginals = self.model.predict_proba(self.train_primitive_matrix)[:,1]
+            self.train_marginals = np.max(self.model.predict_proba(self.train_primitive_matrix), axis=1)
 
         def calculate_accuracy(marginals, b, ground):
             #TODO: HOW DO I USE b!
-            total = np.shape(np.where(marginals != 0.5))[1]
+            total = np.shape(np.where(marginals != 0.33))[1]
             labels = np.sign(2*(marginals - 0.5))
             return np.sum(labels == ground)/float(total)
     

@@ -38,7 +38,10 @@ class Verifier(object):
             from snorkel.learning import RandomSearch
             from snorkel.learning.structure import DependencySelector
             gen_model = GenerativeModel()
-            gen_model.train(self.L_train, epochs=100, decay=0.001 ** (1.0 / 100), step_size=0.005, reg_param=1.0)
+            #Need to change cardinality according to number of classes: have to use Snorkel/MeTaL
+            #github.com/HazyResearch/snorkel
+            #github.com/HazyResearch/metal
+            gen_model.train(self.L_train, epochs=100, decay=0.001 ** (1.0 / 100), step_size=0.005, reg_param=1.0, cardinality=3)
         else:
             gen_model = LabelAggregator()
             gen_model.train(self.L_train, rate=5e-3, mu=1e-4, verbose=False)
@@ -62,7 +65,7 @@ class Verifier(object):
         """ 
         Find val set indices where marginals are within thresh of b 
         """
-        val_idx = np.where(np.abs(self.val_marginals-b) <= gamma)
+        val_idx = np.where(np.abs(np.max(self.val_marginals, axis=1)-b) <= gamma)
         return val_idx[0]
 
     def find_weighted_vague_points(self,gamma=None,b=None):

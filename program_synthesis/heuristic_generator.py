@@ -53,10 +53,17 @@ class HeuristicGenerator(object):
         """
 
         def marginals_to_labels(hf,X,beta):
-            marginals = hf.predict_proba(X)[:,1]
-            labels_cutoff = np.zeros(np.shape(marginals))
-            labels_cutoff[marginals <= (self.b-beta)] = -1.
-            labels_cutoff[marginals >= (self.b+beta)] = 1.
+            if self.b != 0.33: #for three class, we check b != 0.33 CHANGE ACCORDINGLY
+                marginals = hf.predict_proba(X)[:,1]
+                labels_cutoff = np.zeros(np.shape(marginals))
+                labels_cutoff[marginals <= (self.b-beta)] = -1.
+                labels_cutoff[marginals >= (self.b+beta)] = 1.		
+            else:
+                marginals = hf.predict_proba(X)
+                labels_cutoff = np.zeros(np.shape(marginals)[0])
+                marginals_best = np.max(marginals, axis=1)
+                #only higher than chance makes sense because of 3-way
+                labels_cutoff[marginals_best >= (self.b+beta)] = np.argmax(marginals, axis=1)[marginals_best >= (self.b+beta)]+1.
             return labels_cutoff
 
         L = np.zeros((np.shape(primitive_matrix)[0],len(heuristics)))
@@ -120,7 +127,6 @@ class HeuristicGenerator(object):
         #Data-based weighting for Jaccard and F1 (review)
         if self.vf != None:
             train_coverage = calculate_coverage(self.vf.train_marginals, self.b, self.train_ground)
-            print train_coverage
         else:
             train_coverage = 0.5
         combined_scores = train_coverage*acc_cov_scores + (1.0-train_coverage)*jaccard_scores
@@ -178,7 +184,7 @@ class HeuristicGenerator(object):
         Generates Verifier object and saves marginals
         """
         ###THIS IS WHERE THE SNORKEL FLAG IS SET!!!!
-        self.vf = Verifier(self.L_train, self.L_val, self.val_ground, has_snorkel=False)
+        self.vf = Verifier(self.L_train, self.L_val, self.val_ground, has_snorkel=True)
         self.vf.train_gen_model()
         self.vf.assign_marginals()
 
@@ -230,13 +236,13 @@ class HeuristicGenerator(object):
 
         def calculate_accuracy(marginals, b, ground):
             #TODO: HOW DO I USE b!
-            total = np.shape(np.where(marginals != 0.5))[1]
-            labels = np.sign(2*(marginals - 0.5))
+            total = np.shape(np.where(marginals != b))[1]
+            labels = np.argmax(marginals, axis=1)+1. #TODO: +1 here??
             return np.sum(labels == ground)/float(total)
     
         def calculate_coverage(marginals, b, ground):
             #TODO: HOW DO I USE b!
-            total = np.shape(np.where(marginals != 0))[1]
+            total = np.shape(np.where(marginals != b))[1]
             labels = marginals
             return total/float(len(labels))
 
